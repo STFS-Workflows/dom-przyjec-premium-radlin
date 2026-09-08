@@ -49,3 +49,8 @@
 
 /* Subtelny sygnał zaufania: gwiazdki i źródło nie konkurują z cytatem. */
 .review-rating{display:flex;align-items:center;gap:.7rem;margin-bottom:1.15rem;font:.61rem var(--mono);letter-spacing:.07em;text-transform:uppercase;color:#687372}.review-stars{color:#a87236;font-size:.78rem;letter-spacing:.12em;line-height:1}.review-carousel footer{border-top:1px solid rgba(14,23,24,.16);padding-top:.8rem;width:max-content}
+
+/* Nagłówki mają mówić same za siebie; drobne etykiety nie wnoszą treści. */
+.kicker{display:none}.venue-notes-inner{grid-template-columns:1fr}.section-heading,.gallery-header{grid-template-columns:1.4fr .6fr;gap:4rem}.section-heading h2,.gallery-header h2{margin:0}.welcome h2,.garden h2,.visit h2,.reviews h2{margin-top:0}
+@media(max-width:850px){.section-heading,.gallery-header{grid-template-columns:1fr;gap:1rem}}
+@media(max-width:520px){.review-carousel .carousel-dots button{width:14px}.review-rating{gap:.45rem;font-size:.56rem}}

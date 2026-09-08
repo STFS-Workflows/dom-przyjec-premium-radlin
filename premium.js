@@ -13,6 +13,11 @@ if (menuButton && menu) {
 }
 document.querySelector('#year').textContent = new Date().getFullYear();
 
+// Główne CTA prowadzą od razu do krótkiego zapytania, zamiast zatrzymywać gościa przy samych danych kontaktowych.
+document.querySelectorAll('.hero .button-cream, .welcome-copy .text-link, .occasion-list a').forEach((link) => {
+  link.setAttribute('href', '#zapytanie');
+});
+
 // Karuzele są natywne dla dotyku. JavaScript dodaje wyłącznie przyciski i pasek pozycji.
 document.querySelectorAll('[data-carousel]').forEach((carousel) => {
   const track = carousel.querySelector('[data-carousel-track]');

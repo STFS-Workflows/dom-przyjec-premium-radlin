@@ -29,6 +29,18 @@
 @media(max-width:850px){.venue-notes-inner{grid-template-columns:1fr;padding:1.8rem 0}.venue-notes ul{grid-template-columns:repeat(3,1fr)}.reviews-grid{grid-template-columns:1fr;gap:3rem}.review-list{max-width:700px}}
 @media(max-width:520px){.hero h1{font-size:clamp(3.35rem,15vw,4.35rem)}.venue-notes ul{grid-template-columns:1fr;gap:.8rem}.venue-notes li{padding:.2rem 0 .2rem 1rem}.review-list article{grid-template-columns:34px 1fr;gap:.75rem;padding:1.55rem 0}.review-list blockquote{font-size:1.55rem}}
 
+/* Konkretna oferta zamiast dekoracyjnych etykiet: większe informacje i czytelny rytm na telefonie. */
+.venue-notes ul{grid-template-columns:repeat(4,minmax(0,1fr));gap:0}
+.venue-notes li{min-height:3.25rem;align-items:center;padding-right:1rem}
+.venue-notes strong{font-size:clamp(1.3rem,2.1vw,1.8rem);white-space:nowrap}
+.venue-notes span{font-size:.84rem;line-height:1.45}
+.standards-title>p{max-width:430px;margin:1.4rem 0 0;color:#cbd2cc;font-size:1.02rem;line-height:1.65}
+.standards-list article{grid-template-columns:1fr;padding:1.85rem 0}
+.standards-list h3{font-size:clamp(1.6rem,2.6vw,2.15rem);margin-bottom:.55rem}
+.standards-list p{font-size:.96rem;line-height:1.55}
+@media(max-width:850px){.venue-notes ul{grid-template-columns:repeat(2,minmax(0,1fr));row-gap:1.15rem}.venue-notes li:nth-child(3){border-left:0}.standards-grid{gap:2.4rem}.standards-title>p{margin-top:1rem}}
+@media(max-width:520px){.venue-notes ul{grid-template-columns:1fr}.venue-notes li{min-height:auto;padding:.4rem 0 .55rem 1rem}.venue-notes li:nth-child(3){border-left:1px solid #c6bca9}.venue-notes strong{font-size:1.4rem}.standards-list article{padding:1.55rem 0}.standards-list h3{font-size:1.65rem}}
+
 /* Wspólny standard CTA: pełny opis działania, bez ikon zastępujących sens. */
 .button{min-height:50px;padding:.78rem 1.3rem;gap:0;border-radius:0;letter-spacing:.025em;box-shadow:none;transition:background-color .18s ease,color .18s ease,border-color .18s ease}
 .button:hover{transform:none}.button:focus-visible,.text-link:focus-visible{outline:2px solid currentColor;outline-offset:4px}

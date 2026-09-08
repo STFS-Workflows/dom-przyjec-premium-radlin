@@ -1,0 +1,131 @@
+{
+  "name": "STFS — Generowanie ofert i wycen",
+  "nodes": [
+    {
+      "id": "407f6137-1a3b-4136-bbe8-6f43c2d149f5",
+      "name": "Notatka: konfiguracja",
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [
+        80,
+        -40
+      ],
+      "parameters": {
+        "content": "## Generator ofert\n\n**Trigger:** Webhook — po zebraniu briefu od klienta (formularz/e-mail).\n\n**Do zrobienia:**\n1. Podmień węzeł AI na swój provider + dodaj cennik/szablon oferty do kontekstu.\n2. Podmień \"Wygeneruj PDF\" na narzędzie generujące PDF (np. PDF.co, Carbone).",
+        "height": 300,
+        "width": 380,
+        "color": 4
+      }
+    },
+    {
+      "id": "4427b594-c23b-4bf0-a757-461f077736e0",
+      "name": "Brief klienta (Webhook)",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2,
+      "position": [
+        80,
+        300
+      ],
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "brief-oferta",
+        "responseMode": "onReceived",
+        "options": {}
+      }
+    },
+    {
+      "id": "f88f2380-ab57-47f5-b44f-e58ed64fa425",
+      "name": "AI: wypełnij szablon oferty",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        340,
+        300
+      ],
+      "parameters": {
+        "method": "POST",
+        "url": "https://api.openai.com/v1/chat/completions",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ JSON.stringify($json) }}",
+        "options": {}
+      },
+      "notes": "Model wypełnia szablon oferty na podstawie briefu i cennika w kontekście."
+    },
+    {
+      "id": "4978beef-9a9b-48cc-8915-27a3350958f7",
+      "name": "Wygeneruj PDF",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        600,
+        300
+      ],
+      "parameters": {
+        "method": "POST",
+        "url": "https://YOUR-PDF-SERVICE.example.com/api/generate",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ JSON.stringify($json) }}",
+        "options": {}
+      },
+      "notes": "Podmień na PDF.co/Carbone/inny generator PDF."
+    },
+    {
+      "id": "57384df8-711b-445b-831a-b868f8eb3f45",
+      "name": "Wyślij ofertę",
+      "type": "n8n-nodes-base.emailSend",
+      "typeVersion": 2.1,
+      "position": [
+        860,
+        300
+      ],
+      "parameters": {
+        "fromEmail": "hello@stfs.studio",
+        "toEmail": "={{ $json.email }}",
+        "subject": "Twoja oferta od STFS",
+        "text": "W załączeniu przygotowana dla Ciebie oferta.",
+        "options": {}
+      }
+    }
+  ],
+  "connections": {
+    "Brief klienta (Webhook)": {
+      "main": [
+        [
+          {
+            "node": "AI: wypełnij szablon oferty",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "AI: wypełnij szablon oferty": {
+      "main": [
+        [
+          {
+            "node": "Wygeneruj PDF",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Wygeneruj PDF": {
+      "main": [
+        [
+          {
+            "node": "Wyślij ofertę",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1"
+  }
+}

@@ -1,0 +1,174 @@
+{
+  "name": "STFS — Monitoring cen konkurencji",
+  "nodes": [
+    {
+      "id": "7c9d485f-9624-4ae5-88cf-77d3fa8e6835",
+      "name": "Notatka: konfiguracja",
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [
+        80,
+        -40
+      ],
+      "parameters": {
+        "content": "## Monitoring cen konkurencji\n\n**Trigger:** Schedule — codzienne sprawdzenie.\n\n**Do zrobienia:**\n1. Podmień \"Pobierz ceny konkurencji\" na własny scraper/API (uważaj na regulaminy stron — rozważ oficjalne API porównywarek).\n2. Ustaw próg różnicy cenowej w węźle IF.",
+        "height": 300,
+        "width": 380,
+        "color": 4
+      }
+    },
+    {
+      "id": "ac71c86b-f8f9-4dec-86ef-46d4f35bcea1",
+      "name": "Codziennie 6:00",
+      "type": "n8n-nodes-base.scheduleTrigger",
+      "typeVersion": 1.2,
+      "position": [
+        80,
+        300
+      ],
+      "parameters": {
+        "rule": {
+          "interval": [
+            {
+              "field": "cronExpression",
+              "expression": "0 6 * * *"
+            }
+          ]
+        }
+      }
+    },
+    {
+      "id": "e5f6af19-8e8f-4193-9092-5471bc5cfa24",
+      "name": "Pobierz ceny konkurencji",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        340,
+        300
+      ],
+      "parameters": {
+        "method": "GET",
+        "url": "https://YOUR-PRICE-SOURCE.example.com/api/prices",
+        "sendBody": false,
+        "specifyBody": "json",
+        "jsonBody": "={{ JSON.stringify($json) }}",
+        "options": {}
+      },
+      "notes": "Podmień na własny scraper/API porównywarki cen — sprawdź regulamin źródła."
+    },
+    {
+      "id": "d46e0970-d1fb-4fd6-aa28-08455d005ac6",
+      "name": "Porównaj z własną ceną",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        600,
+        300
+      ],
+      "parameters": {
+        "jsCode": "const diffPct = ((($json.ownPrice || 0) - ($json.competitorPrice || 1)) / ($json.competitorPrice || 1)) * 100;\nreturn [{ json: { ...$json, diffPct } }];"
+      }
+    },
+    {
+      "id": "02d5b5ba-b1f1-433a-a258-5ff6de7c0982",
+      "name": "Różnica > 10%?",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2,
+      "position": [
+        860,
+        300
+      ],
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict"
+          },
+          "conditions": [
+            {
+              "id": "01705787-17bf-401f-8800-637cc7982e8f",
+              "leftValue": "={{ $json.diffPct }}",
+              "rightValue": 10,
+              "operator": {
+                "type": "number",
+                "operation": "gt"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      }
+    },
+    {
+      "id": "445d4238-7dce-4e1b-a1ec-e9d7883ca22a",
+      "name": "Alert cenowy",
+      "type": "n8n-nodes-base.slack",
+      "typeVersion": 2.2,
+      "position": [
+        1120,
+        300
+      ],
+      "parameters": {
+        "select": "channel",
+        "channelId": {
+          "mode": "name",
+          "value": "#automatyzacje"
+        },
+        "text": "💰 {{$json.productName}}: Twoja cena różni się o {{$json.diffPct}}% od konkurencji.",
+        "otherOptions": {}
+      }
+    }
+  ],
+  "connections": {
+    "Codziennie 6:00": {
+      "main": [
+        [
+          {
+            "node": "Pobierz ceny konkurencji",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Pobierz ceny konkurencji": {
+      "main": [
+        [
+          {
+            "node": "Porównaj z własną ceną",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Porównaj z własną ceną": {
+      "main": [
+        [
+          {
+            "node": "Różnica > 10%?",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Różnica > 10%?": {
+      "main": [
+        [
+          {
+            "node": "Alert cenowy",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1"
+  }
+}

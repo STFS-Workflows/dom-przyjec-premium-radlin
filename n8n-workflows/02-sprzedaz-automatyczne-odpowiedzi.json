@@ -1,0 +1,101 @@
+{
+  "name": "STFS — Automatyczne odpowiedzi na zapytania",
+  "nodes": [
+    {
+      "id": "a672d575-d3ca-4453-809d-6af349d79e0a",
+      "name": "Notatka: konfiguracja",
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [
+        80,
+        -40
+      ],
+      "parameters": {
+        "content": "## Automatyczne pierwsze odpowiedzi\n\n**Trigger:** Webhook z formularza kontaktowego.\n\n**Do zrobienia:**\n1. Podepnij realny formularz (strona / e-mail box) pod webhook.\n2. Skonfiguruj SMTP (Email Send) lub podmień na Gmail/Outlook node.\n3. Dostosuj treść odpowiedzi AI do tonu marki.",
+        "height": 300,
+        "width": 380,
+        "color": 4
+      }
+    },
+    {
+      "id": "76309a1c-efca-496a-8ab7-1fa7f9cf3541",
+      "name": "Nowe zapytanie (Webhook)",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2,
+      "position": [
+        80,
+        300
+      ],
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "zapytanie-nowe",
+        "responseMode": "onReceived",
+        "options": {}
+      }
+    },
+    {
+      "id": "fc5dd2b2-2434-4fac-999b-a20112ef0081",
+      "name": "AI: wygeneruj odpowiedź",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        340,
+        300
+      ],
+      "parameters": {
+        "method": "POST",
+        "url": "https://api.openai.com/v1/chat/completions",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ JSON.stringify($json) }}",
+        "options": {}
+      },
+      "notes": "Model generuje spersonalizowaną odpowiedź na podstawie treści zapytania."
+    },
+    {
+      "id": "4173bc94-99d0-4f12-9fa8-4fa5639aec0e",
+      "name": "Wyślij odpowiedź",
+      "type": "n8n-nodes-base.emailSend",
+      "typeVersion": 2.1,
+      "position": [
+        600,
+        300
+      ],
+      "parameters": {
+        "fromEmail": "hello@stfs.studio",
+        "toEmail": "={{ $json.email }}",
+        "subject": "Re: Twoje zapytanie do STFS",
+        "text": "={{ $json.aiResponse }}",
+        "options": {}
+      }
+    }
+  ],
+  "connections": {
+    "Nowe zapytanie (Webhook)": {
+      "main": [
+        [
+          {
+            "node": "AI: wygeneruj odpowiedź",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "AI: wygeneruj odpowiedź": {
+      "main": [
+        [
+          {
+            "node": "Wyślij odpowiedź",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1"
+  }
+}

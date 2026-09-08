@@ -1,0 +1,103 @@
+{
+  "name": "STFS — Dynamiczne opisy produktów pod SEO",
+  "nodes": [
+    {
+      "id": "273b9305-dbb8-43c3-9aa8-bcb478848a15",
+      "name": "Notatka: konfiguracja",
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [
+        80,
+        -40
+      ],
+      "parameters": {
+        "content": "## Generator opisów produktów\n\n**Trigger:** Webhook — nowy produkt dodany do sklepu.\n\n**Do zrobienia:**\n1. Podepnij webhook nowego produktu (Shopify/WooCommerce/inny).\n2. Podmień \"Zapisz opis\" na aktualizację produktu w sklepie.",
+        "height": 300,
+        "width": 380,
+        "color": 4
+      }
+    },
+    {
+      "id": "ef29dcfa-afce-4edd-bec1-d04bb0b30814",
+      "name": "Nowy produkt (Webhook)",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2,
+      "position": [
+        80,
+        300
+      ],
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "produkt-nowy",
+        "responseMode": "onReceived",
+        "options": {}
+      }
+    },
+    {
+      "id": "f0f449db-d328-486e-8105-f5fdf53db371",
+      "name": "AI: wygeneruj opis SEO",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        340,
+        300
+      ],
+      "parameters": {
+        "method": "POST",
+        "url": "https://api.openai.com/v1/chat/completions",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ JSON.stringify($json) }}",
+        "options": {}
+      },
+      "notes": "Model generuje opis produktu na podstawie atrybutów (nazwa, kategoria, cechy)."
+    },
+    {
+      "id": "955c8e89-6e9c-49b9-93f2-f6516e1d62bc",
+      "name": "Zapisz opis w sklepie",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        600,
+        300
+      ],
+      "parameters": {
+        "method": "PUT",
+        "url": "https://YOUR-SHOP.example.com/api/products/update",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ JSON.stringify($json) }}",
+        "options": {}
+      },
+      "notes": "Podmień na Shopify/WooCommerce/inny."
+    }
+  ],
+  "connections": {
+    "Nowy produkt (Webhook)": {
+      "main": [
+        [
+          {
+            "node": "AI: wygeneruj opis SEO",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "AI: wygeneruj opis SEO": {
+      "main": [
+        [
+          {
+            "node": "Zapisz opis w sklepie",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1"
+  }
+}

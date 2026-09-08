@@ -1,0 +1,131 @@
+{
+  "name": "STFS — Onboarding nowych pracowników",
+  "nodes": [
+    {
+      "id": "bc45a6ba-3275-4156-87de-fd10509364e0",
+      "name": "Notatka: konfiguracja",
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [
+        80,
+        -40
+      ],
+      "parameters": {
+        "content": "## Onboarding\n\n**Trigger:** Webhook — po zatrudnieniu (np. z ATS/HR systemu).\n\n**Do zrobienia:**\n1. Podmień \"Utwórz konta w narzędziach\" na API Twoich narzędzi (Google Workspace/Slack/inne).\n2. Dostosuj checklistę onboardingową.",
+        "height": 300,
+        "width": 380,
+        "color": 4
+      }
+    },
+    {
+      "id": "6dee35d3-7f92-4eb4-b87b-4a9aed86faa7",
+      "name": "Nowy pracownik (Webhook)",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2,
+      "position": [
+        80,
+        300
+      ],
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "pracownik-nowy",
+        "responseMode": "onReceived",
+        "options": {}
+      }
+    },
+    {
+      "id": "eda7f09b-6c86-4462-9f5d-2783f8f294ab",
+      "name": "Utwórz konta w narzędziach",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        340,
+        300
+      ],
+      "parameters": {
+        "method": "POST",
+        "url": "https://YOUR-IDENTITY.example.com/api/accounts",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ JSON.stringify($json) }}",
+        "options": {}
+      },
+      "notes": "Podmień na Google Workspace/Slack/inne API."
+    },
+    {
+      "id": "d049fdd6-e864-4910-83e7-73c62b10a510",
+      "name": "Powiadom zespół HR",
+      "type": "n8n-nodes-base.slack",
+      "typeVersion": 2.2,
+      "position": [
+        600,
+        300
+      ],
+      "parameters": {
+        "select": "channel",
+        "channelId": {
+          "mode": "name",
+          "value": "#automatyzacje"
+        },
+        "text": "Nowy pracownik: {{$json.fullName}} — konta utworzone.",
+        "otherOptions": {}
+      }
+    },
+    {
+      "id": "e4e6bc7f-6f3f-4925-ba55-277be917f007",
+      "name": "Wyślij checklistę onboardingową",
+      "type": "n8n-nodes-base.emailSend",
+      "typeVersion": 2.1,
+      "position": [
+        860,
+        300
+      ],
+      "parameters": {
+        "fromEmail": "hello@stfs.studio",
+        "toEmail": "={{ $json.email }}",
+        "subject": "Witaj w zespole!",
+        "text": "W załączeniu Twoja checklista pierwszego tygodnia.",
+        "options": {}
+      }
+    }
+  ],
+  "connections": {
+    "Nowy pracownik (Webhook)": {
+      "main": [
+        [
+          {
+            "node": "Utwórz konta w narzędziach",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Utwórz konta w narzędziach": {
+      "main": [
+        [
+          {
+            "node": "Powiadom zespół HR",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Powiadom zespół HR": {
+      "main": [
+        [
+          {
+            "node": "Wyślij checklistę onboardingową",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1"
+  }
+}

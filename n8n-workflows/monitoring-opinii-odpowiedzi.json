@@ -1,0 +1,146 @@
+{
+  "name": "STFS — Monitoring opinii i reputacji (szkielet)",
+  "nodes": [
+    {
+      "id": "9fabd198-d8be-4126-8b37-06219f91a176",
+      "name": "Notatka: konfiguracja",
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [
+        80,
+        -140
+      ],
+      "parameters": {
+        "content": "## Monitoring opinii i reputacji - szkielet\n\n**Co robi teraz:** przyjmuje opinie (webhook), AI ocenia sentyment i pisze projekt odpowiedzi, wynik wraca jako JSON w odpowiedzi na request. NIC nie publikuje automatycznie - zgodnie z tym co obiecujemy na stronie (\"nic nie wychodzi bez Twojej zgody\").\n\n**Jak testowac bez prawdziwego Google/Allegro:**\nWyslij recznie (curl/Postman/tryb testowy webhooka w n8n) taki JSON pod URL webhooka:\n{\"autor\":\"Jan K.\",\"ocena\":2,\"tresc\":\"Zamowienie przyszlo 5 dni pozniej niz obiecano.\"}\nSprawdz czy sentyment i tresc odpowiedzi maja sens. Powtorz z pozytywna opinia.\n\n**Do zrobienia przed uzyciem u klienta:**\n1. Dodaj klucz OpenAI w node \"AI: przeanalizuj i napisz odpowiedz\".\n2. W \"Zbuduj prompt\" podmien \"[PODMIEN NA NAZWE FIRMY...]\" na dane konkretnego klienta.\n3. Podlacz realne zrodlo opinii pod webhook (Google Business Profile API / inne API platformy) zamiast recznych testow.\n4. Dodaj krok powiadomienia wlasciciela (np. e-mail) z projektem odpowiedzi i przyciskiem akceptacji, zanim cokolwiek trafi na realne API publikacji - to osobny node do dobudowania, celowo nie zgadujemy go teraz.",
+        "height": 480,
+        "width": 480,
+        "color": 4
+      }
+    },
+    {
+      "id": "1afe2150-2882-4db9-a073-c6219e4eb8da",
+      "name": "Nowa opinia (Webhook)",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2,
+      "position": [
+        80,
+        300
+      ],
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "opinia-nowa",
+        "responseMode": "responseNode",
+        "options": {}
+      }
+    },
+    {
+      "id": "b4593190-3b93-4e6d-8fdc-30240133a490",
+      "name": "Zbuduj prompt",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        400,
+        300
+      ],
+      "parameters": {
+        "jsCode": "const SYSTEM_PROMPT = \"Jestes asystentem odpowiadajacym w imieniu firmy klienta na opinie zostawione przez jej klientow (Google, Allegro lub inna platforma z recenzjami). Twoje zadanie:\\n1. Ocen sentyment opinii: pozytywna, neutralna lub negatywna.\\n2. Napisz krotka (2-4 zdania), profesjonalna odpowiedz po polsku, dopasowana tonem do opinii.\\n3. Jesli opinia jest pozytywna - podziekuj konkretnie za to, co klient docenil, nie ogolnikowo.\\n4. Jesli opinia jest negatywna - przeproś, nie usprawiedliwiaj sie nadmiernie, zaproponuj kontakt bezposredni w celu rozwiazania sprawy (np. adres e-mail podany w danych firmy). Nie obiecuj konkretnych rekompensat, znizek ani terminow.\\n5. Nigdy nie wymyslaj faktow, nazwisk pracownikow, numerow zamowien ani szczegolow, ktorych nie ma w tresci opinii.\\n6. Nie uzywaj emoji. Nie podpisuj odpowiedzi wymyslonym imieniem.\\nOdpowiedz WYLACZNIE w formacie JSON, bez dodatkowego tekstu: {\\\"sentyment\\\": \\\"pozytywna|neutralna|negatywna\\\", \\\"odpowiedz\\\": \\\"...\\\"}\";\n\nconst body = $json.body || $json;\nconst opinia = {\n  autor: (body.autor || \"Klient\").toString().slice(0, 100),\n  ocena: body.ocena != null ? Number(body.ocena) : null,\n  tresc: (body.tresc || body.opinia || \"\").toString().slice(0, 2000),\n};\n\nif (!opinia.tresc) {\n  throw new Error(\"Brak tresci opinii w payloadzie (pole tresc albo opinia).\");\n}\n\nconst userContent = \"Dane firmy: [PODMIEN NA NAZWE FIRMY KLIENTA I ADRES KONTAKTOWY]\\n\\nOpinia klienta (ocena: \" + (opinia.ocena != null ? opinia.ocena + \"/5\" : \"brak oceny\") + \"):\\n\" + opinia.tresc;\n\nreturn [{\n  json: {\n    opinia_oryginalna: opinia,\n    body: {\n      model: \"gpt-4o-mini\",\n      max_tokens: 300,\n      response_format: { type: \"json_object\" },\n      messages: [\n        { role: \"system\", content: SYSTEM_PROMPT },\n        { role: \"user\", content: userContent },\n      ],\n    },\n  },\n}];"
+      }
+    },
+    {
+      "id": "1e2584d3-ec3e-4df0-8413-6507da8f7b6e",
+      "name": "AI: przeanalizuj i napisz odpowiedz",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        720,
+        300
+      ],
+      "parameters": {
+        "method": "POST",
+        "url": "https://api.openai.com/v1/chat/completions",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ $json.body }}",
+        "options": {}
+      },
+      "notes": "Wymaga naglowka Authorization: Bearer TWOJ_KLUCZ_OPENAI w zakladce Headers."
+    },
+    {
+      "id": "6d0de56a-4e69-4b48-99a9-9bb9ed64f6fd",
+      "name": "Wyodrebnij wynik",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        1040,
+        300
+      ],
+      "parameters": {
+        "jsCode": "let parsed;\ntry {\n  const raw = $json.choices && $json.choices[0] && $json.choices[0].message && $json.choices[0].message.content;\n  parsed = JSON.parse(raw);\n} catch (e) {\n  parsed = { sentyment: \"nieznany\", odpowiedz: \"Nie udalo sie wygenerowac odpowiedzi automatycznie - wymaga recznego napisania.\" };\n}\n\nreturn [{\n  json: {\n    sentyment: parsed.sentyment || \"nieznany\",\n    odpowiedz: parsed.odpowiedz || \"\",\n    opinia_oryginalna: $json.opinia_oryginalna,\n  },\n}];"
+      }
+    },
+    {
+      "id": "37107f94-6af1-442b-9688-f1f11b8969f7",
+      "name": "Zwroc projekt odpowiedzi (do akceptacji)",
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.1,
+      "position": [
+        1360,
+        300
+      ],
+      "parameters": {
+        "respondWith": "json",
+        "responseBody": "={{ { \"sentyment\": $json.sentyment, \"propozycja_odpowiedzi\": $json.odpowiedz, \"opinia_oryginalna\": $json.opinia_oryginalna } }}"
+      }
+    }
+  ],
+  "connections": {
+    "Nowa opinia (Webhook)": {
+      "main": [
+        [
+          {
+            "node": "Zbuduj prompt",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Zbuduj prompt": {
+      "main": [
+        [
+          {
+            "node": "AI: przeanalizuj i napisz odpowiedz",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "AI: przeanalizuj i napisz odpowiedz": {
+      "main": [
+        [
+          {
+            "node": "Wyodrebnij wynik",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Wyodrebnij wynik": {
+      "main": [
+        [
+          {
+            "node": "Zwroc projekt odpowiedzi (do akceptacji)",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1"
+  }
+}

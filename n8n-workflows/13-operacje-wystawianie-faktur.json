@@ -1,0 +1,141 @@
+{
+  "name": "STFS — Wystawianie i wysyłka faktur",
+  "nodes": [
+    {
+      "id": "13c40d3b-775b-4b49-82af-1626769b94e5",
+      "name": "Notatka: konfiguracja",
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [
+        80,
+        -40
+      ],
+      "parameters": {
+        "content": "## Automatyczne faktury\n\n**Trigger:** Webhook — po opłaceniu zamówienia (np. z Stripe/systemu sprzedaży).\n\n**Do zrobienia:**\n1. Podmień \"Wystaw fakturę\" na API systemu księgowego (Fakturownia/iFirma/inny).\n2. Skonfiguruj SMTP do wysyłki maila z fakturą.",
+        "height": 300,
+        "width": 380,
+        "color": 4
+      }
+    },
+    {
+      "id": "118a1032-c86d-4b48-ac95-61b38667fc83",
+      "name": "Zamówienie opłacone (Webhook)",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2,
+      "position": [
+        80,
+        300
+      ],
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "zamowienie-oplacone",
+        "responseMode": "onReceived",
+        "options": {}
+      }
+    },
+    {
+      "id": "df728fb0-beea-4e32-b56e-372464eff40f",
+      "name": "Przygotuj dane faktury",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        340,
+        300
+      ],
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "7ff41172-75f4-4f14-bb4b-3a6e120381f2",
+              "name": "client",
+              "value": "={{ $json.customerName }}",
+              "type": "string"
+            },
+            {
+              "id": "c569b217-2839-427c-b6a4-0ece599c8829",
+              "name": "amount",
+              "value": "={{ $json.amount }}",
+              "type": "number"
+            }
+          ]
+        },
+        "options": {}
+      }
+    },
+    {
+      "id": "99290285-281e-4d27-b477-334c6597b472",
+      "name": "Wystaw fakturę",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        600,
+        300
+      ],
+      "parameters": {
+        "method": "POST",
+        "url": "https://YOUR-BILLING.example.com/api/invoices",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ JSON.stringify($json) }}",
+        "options": {}
+      },
+      "notes": "Podmień na Fakturownia/iFirma/inny system księgowy."
+    },
+    {
+      "id": "3959101b-df35-4282-a7af-e7e1df754063",
+      "name": "Wyślij fakturę mailem",
+      "type": "n8n-nodes-base.emailSend",
+      "typeVersion": 2.1,
+      "position": [
+        860,
+        300
+      ],
+      "parameters": {
+        "fromEmail": "hello@stfs.studio",
+        "toEmail": "={{ $json.email }}",
+        "subject": "Faktura za zamówienie",
+        "text": "W załączeniu faktura za Twoje zamówienie. Dziękujemy!",
+        "options": {}
+      }
+    }
+  ],
+  "connections": {
+    "Zamówienie opłacone (Webhook)": {
+      "main": [
+        [
+          {
+            "node": "Przygotuj dane faktury",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Przygotuj dane faktury": {
+      "main": [
+        [
+          {
+            "node": "Wystaw fakturę",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Wystaw fakturę": {
+      "main": [
+        [
+          {
+            "node": "Wyślij fakturę mailem",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1"
+  }
+}

@@ -1,0 +1,158 @@
+{
+  "name": "STFS — Agent głosowy (recepcja AI)",
+  "nodes": [
+    {
+      "id": "e1765504-7af1-41c5-9e55-95ba745befbf",
+      "name": "Notatka: konfiguracja",
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [
+        80,
+        -40
+      ],
+      "parameters": {
+        "content": "## Agent głosowy\n\n**Trigger:** Webhook — wywoływany przez Twilio (przychodzące połączenie).\n\n**Do zrobienia (wymaga dodatkowej infrastruktury):**\n1. Konto Twilio + numer telefonu, webhook połączenia wskazuje na ten URL.\n2. Speech-to-Text (np. Whisper API) do zamiany mowy na tekst.\n3. Węzeł AI generuje odpowiedź.\n4. Text-to-Speech (np. ElevenLabs/OpenAI TTS) do wygenerowania odpowiedzi głosowej zwracanej do Twilio (TwiML).\nTo najbardziej złożony workflow w katalogu — potraktuj jako szkielet do rozbudowy.",
+        "height": 300,
+        "width": 380,
+        "color": 4
+      }
+    },
+    {
+      "id": "754eec28-15d2-465f-b751-32465e42a908",
+      "name": "Połączenie przychodzące (Twilio Webhook)",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2,
+      "position": [
+        80,
+        300
+      ],
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "agent-glosowy",
+        "responseMode": "onReceived",
+        "options": {}
+      }
+    },
+    {
+      "id": "e4c2d3a5-fc7c-49fe-b090-35bed448d8db",
+      "name": "Speech-to-Text",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        340,
+        300
+      ],
+      "parameters": {
+        "method": "POST",
+        "url": "https://api.openai.com/v1/audio/transcriptions",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ JSON.stringify($json) }}",
+        "options": {}
+      },
+      "notes": "Podmień na Whisper API lub inny STT."
+    },
+    {
+      "id": "6ec6c3d5-6492-4f65-be13-0898bc5cdda9",
+      "name": "AI: wygeneruj odpowiedź",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        600,
+        300
+      ],
+      "parameters": {
+        "method": "POST",
+        "url": "https://api.openai.com/v1/chat/completions",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ JSON.stringify($json) }}",
+        "options": {}
+      },
+      "notes": "Podmień na węzeł dostawcy AI (OpenAI/Claude/inny) lub uzupełnij Authorization: Bearer w Headers. To placeholder pokazujący, gdzie w przepływie wchodzi model językowy."
+    },
+    {
+      "id": "d72292c4-57e8-485d-be6c-897540d48f6f",
+      "name": "Text-to-Speech",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        860,
+        300
+      ],
+      "parameters": {
+        "method": "POST",
+        "url": "https://api.elevenlabs.io/v1/text-to-speech",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ JSON.stringify($json) }}",
+        "options": {}
+      },
+      "notes": "Podmień na ElevenLabs/OpenAI TTS."
+    },
+    {
+      "id": "6c2de803-2627-4338-9a8d-a0697a15e1a7",
+      "name": "Zwróć TwiML do Twilio",
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.1,
+      "position": [
+        1120,
+        300
+      ],
+      "parameters": {
+        "respondWith": "json",
+        "responseBody": "={{ { \"status\": \"ok\" } }}"
+      }
+    }
+  ],
+  "connections": {
+    "Połączenie przychodzące (Twilio Webhook)": {
+      "main": [
+        [
+          {
+            "node": "Speech-to-Text",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Speech-to-Text": {
+      "main": [
+        [
+          {
+            "node": "AI: wygeneruj odpowiedź",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "AI: wygeneruj odpowiedź": {
+      "main": [
+        [
+          {
+            "node": "Text-to-Speech",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Text-to-Speech": {
+      "main": [
+        [
+          {
+            "node": "Zwróć TwiML do Twilio",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1"
+  }
+}

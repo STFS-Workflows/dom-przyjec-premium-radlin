@@ -1,0 +1,174 @@
+{
+  "name": "STFS — Wykrywanie anomalii w danych",
+  "nodes": [
+    {
+      "id": "43114c17-5414-41ad-8824-97532a9f826c",
+      "name": "Notatka: konfiguracja",
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [
+        80,
+        -40
+      ],
+      "parameters": {
+        "content": "## Wykrywanie anomalii\n\n**Trigger:** Schedule — cogodzinna kontrola kluczowych metryk.\n\n**Do zrobienia:**\n1. Podmień \"Pobierz metryki\" na źródło danych (Analytics/CRM/sprzedaż).\n2. Dostosuj próg odchylenia w węźle IF do swoich danych historycznych.",
+        "height": 300,
+        "width": 380,
+        "color": 4
+      }
+    },
+    {
+      "id": "3b6287b7-9c0a-488b-b356-35ce733bd6a9",
+      "name": "Co godzinę",
+      "type": "n8n-nodes-base.scheduleTrigger",
+      "typeVersion": 1.2,
+      "position": [
+        80,
+        300
+      ],
+      "parameters": {
+        "rule": {
+          "interval": [
+            {
+              "field": "cronExpression",
+              "expression": "0 * * * *"
+            }
+          ]
+        }
+      }
+    },
+    {
+      "id": "4f4b6000-b4b0-44c0-a584-d3113c27dc8d",
+      "name": "Pobierz metryki",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        340,
+        300
+      ],
+      "parameters": {
+        "method": "GET",
+        "url": "https://YOUR-ANALYTICS.example.com/api/metrics",
+        "sendBody": false,
+        "specifyBody": "json",
+        "jsonBody": "={{ JSON.stringify($json) }}",
+        "options": {}
+      },
+      "notes": "Podmień na Analytics/CRM/system sprzedaży."
+    },
+    {
+      "id": "5f81e84a-4e7b-4fe4-b9b4-a0e1d6217494",
+      "name": "Oblicz odchylenie",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        600,
+        300
+      ],
+      "parameters": {
+        "jsCode": "const deviation = Math.abs((($json.current || 0) - ($json.average || 1)) / ($json.average || 1)) * 100;\nreturn [{ json: { ...$json, deviation } }];"
+      }
+    },
+    {
+      "id": "0b7d14cf-55f5-479e-9aa7-812d8aedea8f",
+      "name": "Odchylenie > 30%?",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2,
+      "position": [
+        860,
+        300
+      ],
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict"
+          },
+          "conditions": [
+            {
+              "id": "3d520324-c848-4e71-ae5a-1fc56395e65d",
+              "leftValue": "={{ $json.deviation }}",
+              "rightValue": 30,
+              "operator": {
+                "type": "number",
+                "operation": "gt"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      }
+    },
+    {
+      "id": "0c463460-8b69-4ac6-a573-a9784b608939",
+      "name": "Alert anomalii",
+      "type": "n8n-nodes-base.slack",
+      "typeVersion": 2.2,
+      "position": [
+        1120,
+        300
+      ],
+      "parameters": {
+        "select": "channel",
+        "channelId": {
+          "mode": "name",
+          "value": "#automatyzacje"
+        },
+        "text": "⚠️ Wykryto anomalię: {{$json.metricName}} odchylenie {{$json.deviation}}%",
+        "otherOptions": {}
+      }
+    }
+  ],
+  "connections": {
+    "Co godzinę": {
+      "main": [
+        [
+          {
+            "node": "Pobierz metryki",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Pobierz metryki": {
+      "main": [
+        [
+          {
+            "node": "Oblicz odchylenie",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Oblicz odchylenie": {
+      "main": [
+        [
+          {
+            "node": "Odchylenie > 30%?",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Odchylenie > 30%?": {
+      "main": [
+        [
+          {
+            "node": "Alert anomalii",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1"
+  }
+}

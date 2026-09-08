@@ -1,0 +1,103 @@
+{
+  "name": "STFS — Automatyczne odpowiedzi na opinie",
+  "nodes": [
+    {
+      "id": "5ec335f7-e31f-41d1-89d8-1da6d043e17d",
+      "name": "Notatka: konfiguracja",
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [
+        80,
+        -40
+      ],
+      "parameters": {
+        "content": "## Odpowiedzi na opinie\n\n**Trigger:** Webhook — nowa opinia (Google/sklep/Allegro).\n\n**Do zrobienia:**\n1. Podepnij realne źródło opinii pod webhook (lub Schedule + pobieranie przez API platformy).\n2. Podmień \"Opublikuj odpowiedź\" na API platformy z opiniami.",
+        "height": 300,
+        "width": 380,
+        "color": 4
+      }
+    },
+    {
+      "id": "f19cd54b-a040-45ac-93b5-7bad63b259ad",
+      "name": "Nowa opinia (Webhook)",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2,
+      "position": [
+        80,
+        300
+      ],
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "opinia-nowa",
+        "responseMode": "onReceived",
+        "options": {}
+      }
+    },
+    {
+      "id": "3ced8779-9cd3-4826-91e0-7234836bea6c",
+      "name": "AI: napisz odpowiedź na opinię",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        340,
+        300
+      ],
+      "parameters": {
+        "method": "POST",
+        "url": "https://api.openai.com/v1/chat/completions",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ JSON.stringify($json) }}",
+        "options": {}
+      },
+      "notes": "Model dobiera ton odpowiedzi do sentymentu opinii."
+    },
+    {
+      "id": "276d67d9-d906-456f-b740-5ca4d8d4e858",
+      "name": "Opublikuj odpowiedź",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        600,
+        300
+      ],
+      "parameters": {
+        "method": "POST",
+        "url": "https://YOUR-PLATFORM.example.com/api/reviews/reply",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ JSON.stringify($json) }}",
+        "options": {}
+      },
+      "notes": "Podmień na API platformy z opiniami."
+    }
+  ],
+  "connections": {
+    "Nowa opinia (Webhook)": {
+      "main": [
+        [
+          {
+            "node": "AI: napisz odpowiedź na opinię",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "AI: napisz odpowiedź na opinię": {
+      "main": [
+        [
+          {
+            "node": "Opublikuj odpowiedź",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1"
+  }
+}

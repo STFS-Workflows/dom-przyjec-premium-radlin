@@ -1,0 +1,103 @@
+{
+  "name": "STFS — Chatbot HR",
+  "nodes": [
+    {
+      "id": "32913146-7204-490c-985a-010e093b61a3",
+      "name": "Notatka: konfiguracja",
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [
+        80,
+        -40
+      ],
+      "parameters": {
+        "content": "## Chatbot HR\n\n**Trigger:** Webhook — podepnij pod Slack/Teams/wewnętrzny czat.\n\n**Do zrobienia:**\n1. Podmień węzeł AI na swój provider + dodaj politykę urlopową/regulamin do kontekstu.\n2. Podmień \"Odpowiedz w kanale\" na Slack/Teams node.",
+        "height": 300,
+        "width": 380,
+        "color": 4
+      }
+    },
+    {
+      "id": "2c8b7b5c-7fd0-4609-8a9a-0ee4128ccccd",
+      "name": "Pytanie pracownika (Webhook)",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2,
+      "position": [
+        80,
+        300
+      ],
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "hr-pytanie",
+        "responseMode": "onReceived",
+        "options": {}
+      }
+    },
+    {
+      "id": "bd727e2a-c982-4866-85a6-46e398a716b6",
+      "name": "AI: odpowiedz na podstawie polityk HR",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        340,
+        300
+      ],
+      "parameters": {
+        "method": "POST",
+        "url": "https://api.openai.com/v1/chat/completions",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ JSON.stringify($json) }}",
+        "options": {}
+      },
+      "notes": "Model odpowiada na podstawie regulaminu/polityki urlopowej w kontekście."
+    },
+    {
+      "id": "8e29129a-bcfe-4798-9b4f-2a0c521dfe44",
+      "name": "Odpowiedz w kanale",
+      "type": "n8n-nodes-base.slack",
+      "typeVersion": 2.2,
+      "position": [
+        600,
+        300
+      ],
+      "parameters": {
+        "select": "channel",
+        "channelId": {
+          "mode": "name",
+          "value": "#automatyzacje"
+        },
+        "text": "={{ $json.aiResponse }}",
+        "otherOptions": {}
+      }
+    }
+  ],
+  "connections": {
+    "Pytanie pracownika (Webhook)": {
+      "main": [
+        [
+          {
+            "node": "AI: odpowiedz na podstawie polityk HR",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "AI: odpowiedz na podstawie polityk HR": {
+      "main": [
+        [
+          {
+            "node": "Odpowiedz w kanale",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1"
+  }
+}

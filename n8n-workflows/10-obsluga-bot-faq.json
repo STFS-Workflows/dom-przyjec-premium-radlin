@@ -1,0 +1,128 @@
+{
+  "name": "STFS — Bot FAQ (Telegram / WhatsApp / czat)",
+  "nodes": [
+    {
+      "id": "be1d47ea-12ab-4bd2-9d65-88655611a791",
+      "name": "Notatka: konfiguracja",
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [
+        80,
+        -40
+      ],
+      "parameters": {
+        "content": "## Bot FAQ\n\n**Trigger:** Webhook — podepnij pod Telegram Bot API / WhatsApp Business API / widget czatu na stronie.\n\n**Do zrobienia:**\n1. Skonfiguruj webhook swojego kanału (Telegram/WhatsApp) tak, by wołał ten URL.\n2. Podmień węzeł AI na provider + dodaj bazę wiedzy FAQ w promptcie.\n3. Podmień \"Odpowiedz na kanale\" na węzeł Telegram/WhatsApp.",
+        "height": 300,
+        "width": 380,
+        "color": 4
+      }
+    },
+    {
+      "id": "43f5a768-6c99-4efc-ad02-b047e6e73bb1",
+      "name": "Wiadomość od klienta (Webhook)",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2,
+      "position": [
+        80,
+        300
+      ],
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "bot-faq",
+        "responseMode": "onReceived",
+        "options": {}
+      }
+    },
+    {
+      "id": "8c77e6f2-1e7a-4f72-ac31-8971bb61b05b",
+      "name": "AI: wygeneruj odpowiedź z FAQ",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        340,
+        300
+      ],
+      "parameters": {
+        "method": "POST",
+        "url": "https://api.openai.com/v1/chat/completions",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ JSON.stringify($json) }}",
+        "options": {}
+      },
+      "notes": "Model odpowiada na podstawie bazy FAQ w prompt/kontekście."
+    },
+    {
+      "id": "3314c8f2-de96-4b22-bee9-e5cce9b3c75e",
+      "name": "Odpowiedz na kanale",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        600,
+        300
+      ],
+      "parameters": {
+        "method": "POST",
+        "url": "https://api.telegram.org/botYOUR_TOKEN/sendMessage",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ JSON.stringify($json) }}",
+        "options": {}
+      },
+      "notes": "Podmień na natywny węzeł Telegram/WhatsApp."
+    },
+    {
+      "id": "25298cab-c74b-44f6-8acd-1631bdec3007",
+      "name": "Odpowiedz webhookowi",
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.1,
+      "position": [
+        860,
+        300
+      ],
+      "parameters": {
+        "respondWith": "json",
+        "responseBody": "={{ { \"status\": \"ok\" } }}"
+      }
+    }
+  ],
+  "connections": {
+    "Wiadomość od klienta (Webhook)": {
+      "main": [
+        [
+          {
+            "node": "AI: wygeneruj odpowiedź z FAQ",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "AI: wygeneruj odpowiedź z FAQ": {
+      "main": [
+        [
+          {
+            "node": "Odpowiedz na kanale",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Odpowiedz na kanale": {
+      "main": [
+        [
+          {
+            "node": "Odpowiedz webhookowi",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1"
+  }
+}

@@ -1,0 +1,133 @@
+{
+  "name": "STFS — Kategoryzacja i priorytetyzacja zgłoszeń",
+  "nodes": [
+    {
+      "id": "19cc62ef-8d98-4cae-add9-cd9b8010831b",
+      "name": "Notatka: konfiguracja",
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [
+        80,
+        -40
+      ],
+      "parameters": {
+        "content": "## Kategoryzacja zgłoszeń\n\n**Trigger:** Webhook z formularza zgłoszeniowego / helpdesku.\n\n**Do zrobienia:**\n1. Podmień \"Zapisz w helpdesku\" na realny system (Zendesk/Freshdesk/inny).\n2. Dostosuj kategorie i priorytety do swojego zespołu.",
+        "height": 300,
+        "width": 380,
+        "color": 4
+      }
+    },
+    {
+      "id": "ccc8d0b3-202b-4cfe-baea-69afa4e16737",
+      "name": "Nowe zgłoszenie (Webhook)",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2,
+      "position": [
+        80,
+        300
+      ],
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "zgloszenie-nowe",
+        "responseMode": "onReceived",
+        "options": {}
+      }
+    },
+    {
+      "id": "fd49a03d-6d19-41e8-9cd3-35a01f618afb",
+      "name": "AI: kategoria i priorytet",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        340,
+        300
+      ],
+      "parameters": {
+        "method": "POST",
+        "url": "https://api.openai.com/v1/chat/completions",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ JSON.stringify($json) }}",
+        "options": {}
+      },
+      "notes": "Model zwraca kategorię (techniczne/sprzedaż/inne) i priorytet (niski/średni/wysoki)."
+    },
+    {
+      "id": "758fe866-851d-4b99-919f-d89ddcf11075",
+      "name": "Zapisz w helpdesku",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        600,
+        300
+      ],
+      "parameters": {
+        "method": "POST",
+        "url": "https://YOUR-HELPDESK.example.com/api/tickets",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ JSON.stringify($json) }}",
+        "options": {}
+      },
+      "notes": "Podmień na Zendesk/Freshdesk/inny."
+    },
+    {
+      "id": "894b6cfe-f167-4e6b-bdfd-26ab0150a61c",
+      "name": "Powiadom zespół",
+      "type": "n8n-nodes-base.slack",
+      "typeVersion": 2.2,
+      "position": [
+        860,
+        300
+      ],
+      "parameters": {
+        "select": "channel",
+        "channelId": {
+          "mode": "name",
+          "value": "#automatyzacje"
+        },
+        "text": "Nowe zgłoszenie [{{$json.priority}}]: {{$json.subject}}",
+        "otherOptions": {}
+      }
+    }
+  ],
+  "connections": {
+    "Nowe zgłoszenie (Webhook)": {
+      "main": [
+        [
+          {
+            "node": "AI: kategoria i priorytet",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "AI: kategoria i priorytet": {
+      "main": [
+        [
+          {
+            "node": "Zapisz w helpdesku",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Zapisz w helpdesku": {
+      "main": [
+        [
+          {
+            "node": "Powiadom zespół",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1"
+  }
+}

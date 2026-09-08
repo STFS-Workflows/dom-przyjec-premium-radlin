@@ -1,0 +1,101 @@
+{
+  "name": "STFS — Umawianie spotkań i konsultacji",
+  "nodes": [
+    {
+      "id": "9d3d18dc-ac86-4ca1-9169-2f4a0a3d429c",
+      "name": "Notatka: konfiguracja",
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [
+        80,
+        -40
+      ],
+      "parameters": {
+        "content": "## Automatyczne umawianie spotkań\n\n**Trigger:** Webhook z panelu rezerwacji (np. sekcja Konsultacja na stronie STFS).\n\n**Do zrobienia:**\n1. Podmień \"Utwórz wydarzenie\" na węzeł Google Calendar / Cal.com / Calendly.\n2. Skonfiguruj SMTP dla potwierdzenia mailowego.",
+        "height": 300,
+        "width": 380,
+        "color": 4
+      }
+    },
+    {
+      "id": "9d3b9962-e4a5-4445-831c-665680d4e841",
+      "name": "Rezerwacja konsultacji (Webhook)",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2,
+      "position": [
+        80,
+        300
+      ],
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "rezerwacja-konsultacji",
+        "responseMode": "onReceived",
+        "options": {}
+      }
+    },
+    {
+      "id": "c3e4870e-2302-40d7-b621-d1e92a60886a",
+      "name": "Utwórz wydarzenie w kalendarzu",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        340,
+        300
+      ],
+      "parameters": {
+        "method": "POST",
+        "url": "https://YOUR-CALENDAR.example.com/api/events",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ JSON.stringify($json) }}",
+        "options": {}
+      },
+      "notes": "Podmień na Google Calendar / Cal.com / Calendly node."
+    },
+    {
+      "id": "b89da383-172a-450e-a3d5-321b5ad23006",
+      "name": "Wyślij potwierdzenie",
+      "type": "n8n-nodes-base.emailSend",
+      "typeVersion": 2.1,
+      "position": [
+        600,
+        300
+      ],
+      "parameters": {
+        "fromEmail": "hello@stfs.studio",
+        "toEmail": "={{ $json.email }}",
+        "subject": "Potwierdzenie konsultacji STFS",
+        "text": "Twoja konsultacja została zarezerwowana: {{$json.date}} {{$json.time}}.",
+        "options": {}
+      }
+    }
+  ],
+  "connections": {
+    "Rezerwacja konsultacji (Webhook)": {
+      "main": [
+        [
+          {
+            "node": "Utwórz wydarzenie w kalendarzu",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Utwórz wydarzenie w kalendarzu": {
+      "main": [
+        [
+          {
+            "node": "Wyślij potwierdzenie",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1"
+  }
+}

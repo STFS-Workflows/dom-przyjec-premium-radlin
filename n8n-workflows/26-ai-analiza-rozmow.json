@@ -1,0 +1,133 @@
+{
+  "name": "STFS — Analiza rozmów sprzedażowych",
+  "nodes": [
+    {
+      "id": "86c5bbdd-f5ea-4659-a805-04cf0d910bd1",
+      "name": "Notatka: konfiguracja",
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [
+        80,
+        -40
+      ],
+      "parameters": {
+        "content": "## Analiza rozmów sprzedażowych\n\n**Trigger:** Webhook — po zakończeniu nagrania rozmowy (z narzędzia typu Aircall/Twilio).\n\n**Do zrobienia:**\n1. Podmień \"Transkrypcja\" na Whisper API lub inny STT.\n2. Podmień \"Zapisz ocenę\" na CRM/arkusz coachingowy.",
+        "height": 300,
+        "width": 380,
+        "color": 4
+      }
+    },
+    {
+      "id": "4a29edda-7e9e-47a0-ad93-cbefc3442211",
+      "name": "Nagranie zakończone (Webhook)",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2,
+      "position": [
+        80,
+        300
+      ],
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "rozmowa-nagranie",
+        "responseMode": "onReceived",
+        "options": {}
+      }
+    },
+    {
+      "id": "abae3391-4eb0-4ef3-a2dd-75600beb7205",
+      "name": "Transkrypcja",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        340,
+        300
+      ],
+      "parameters": {
+        "method": "POST",
+        "url": "https://api.openai.com/v1/audio/transcriptions",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ JSON.stringify($json) }}",
+        "options": {}
+      },
+      "notes": "Podmień na Whisper API lub inny STT."
+    },
+    {
+      "id": "fe0249fe-5c79-47ae-8ef6-972070872a74",
+      "name": "AI: oceń rozmowę",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        600,
+        300
+      ],
+      "parameters": {
+        "method": "POST",
+        "url": "https://api.openai.com/v1/chat/completions",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ JSON.stringify($json) }}",
+        "options": {}
+      },
+      "notes": "Model ocenia rozmowę pod kątem struktury, obiekcji i domknięcia sprzedaży."
+    },
+    {
+      "id": "43657194-0928-4b56-b2a3-1fbeda0b6e4e",
+      "name": "Zapisz ocenę",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        860,
+        300
+      ],
+      "parameters": {
+        "method": "POST",
+        "url": "https://YOUR-CRM.example.com/api/calls/score",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ JSON.stringify($json) }}",
+        "options": {}
+      },
+      "notes": "Podmień na CRM/arkusz coachingowy."
+    }
+  ],
+  "connections": {
+    "Nagranie zakończone (Webhook)": {
+      "main": [
+        [
+          {
+            "node": "Transkrypcja",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Transkrypcja": {
+      "main": [
+        [
+          {
+            "node": "AI: oceń rozmowę",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "AI: oceń rozmowę": {
+      "main": [
+        [
+          {
+            "node": "Zapisz ocenę",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1"
+  }
+}

@@ -1,0 +1,127 @@
+{
+  "name": "STFS — OCR i ekstrakcja danych z dokumentów",
+  "nodes": [
+    {
+      "id": "361ce4ec-041e-400d-8595-a10b94aef4da",
+      "name": "Notatka: konfiguracja",
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [
+        80,
+        -40
+      ],
+      "parameters": {
+        "content": "## OCR dokumentów\n\n**Trigger:** Webhook — po przesłaniu pliku (skan/paragon/umowa).\n\n**Do zrobienia:**\n1. Podmień \"OCR: odczytaj dokument\" na Google Vision / AWS Textract / Azure Document Intelligence + klucz API.\n2. Podmień \"Zapisz dane\" na docelową bazę/arkusz.",
+        "height": 300,
+        "width": 380,
+        "color": 4
+      }
+    },
+    {
+      "id": "4e177462-b10f-4ce4-8e59-5b65575a7be4",
+      "name": "Nowy dokument (Webhook)",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2,
+      "position": [
+        80,
+        300
+      ],
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "dokument-nowy",
+        "responseMode": "onReceived",
+        "options": {}
+      }
+    },
+    {
+      "id": "1c5e41d5-08cf-4c1b-a804-b60735d7cfa8",
+      "name": "OCR: odczytaj dokument",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        340,
+        300
+      ],
+      "parameters": {
+        "method": "POST",
+        "url": "https://vision.googleapis.com/v1/images:annotate",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ JSON.stringify($json) }}",
+        "options": {}
+      },
+      "notes": "Podmień na Google Vision/AWS Textract/Azure Document Intelligence."
+    },
+    {
+      "id": "62186820-6fc6-4b4b-9b6a-a94fc54a64d3",
+      "name": "Wyciągnij pola",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        600,
+        300
+      ],
+      "parameters": {
+        "jsCode": "return [{ json: { text: $json.text || \"\" } }];"
+      }
+    },
+    {
+      "id": "2966be3e-1d87-4ade-a7df-223e205b738e",
+      "name": "Zapisz dane",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        860,
+        300
+      ],
+      "parameters": {
+        "method": "POST",
+        "url": "https://YOUR-DB.example.com/api/documents",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ JSON.stringify($json) }}",
+        "options": {}
+      },
+      "notes": "Podmień na docelową bazę/arkusz."
+    }
+  ],
+  "connections": {
+    "Nowy dokument (Webhook)": {
+      "main": [
+        [
+          {
+            "node": "OCR: odczytaj dokument",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "OCR: odczytaj dokument": {
+      "main": [
+        [
+          {
+            "node": "Wyciągnij pola",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Wyciągnij pola": {
+      "main": [
+        [
+          {
+            "node": "Zapisz dane",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1"
+  }
+}

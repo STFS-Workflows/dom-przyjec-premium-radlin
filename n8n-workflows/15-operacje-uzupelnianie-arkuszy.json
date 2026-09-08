@@ -1,0 +1,114 @@
+{
+  "name": "STFS — Uzupełnianie arkuszy z formularzy i maili",
+  "nodes": [
+    {
+      "id": "13395e0f-9458-46d0-aeb6-c48dbe1c051b",
+      "name": "Notatka: konfiguracja",
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [
+        80,
+        -40
+      ],
+      "parameters": {
+        "content": "## Auto-uzupełnianie arkusza\n\n**Trigger:** Webhook z formularza.\n\n**Do zrobienia:**\n1. Podmień \"Dopisz wiersz\" na węzeł Google Sheets (wybierz arkusz + zakres).\n2. Zmapuj pola w węźle Set do kolumn arkusza.",
+        "height": 300,
+        "width": 380,
+        "color": 4
+      }
+    },
+    {
+      "id": "4d044ae0-7b1f-404f-8299-23496f01cf98",
+      "name": "Nowe zgłoszenie formularza (Webhook)",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2,
+      "position": [
+        80,
+        300
+      ],
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "formularz-nowy",
+        "responseMode": "onReceived",
+        "options": {}
+      }
+    },
+    {
+      "id": "35f8d9d6-8958-4902-a369-f73767ce3ee1",
+      "name": "Zmapuj do kolumn",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        340,
+        300
+      ],
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "82094c9a-15ed-4f0c-af70-6b4edd669571",
+              "name": "Data",
+              "value": "={{ $now }}",
+              "type": "string"
+            },
+            {
+              "id": "9d49107b-e5ef-41aa-b648-3af6871672ec",
+              "name": "Imię",
+              "value": "={{ $json.name }}",
+              "type": "string"
+            },
+            {
+              "id": "f1f008ce-1919-4b9c-91bc-4849c29f0887",
+              "name": "Email",
+              "value": "={{ $json.email }}",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      }
+    },
+    {
+      "id": "a0084d2b-3508-4b9e-a46f-e41093121012",
+      "name": "Dopisz wiersz",
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.4,
+      "position": [
+        600,
+        300
+      ],
+      "parameters": {
+        "operation": "append",
+        "sheetName": "Arkusz1"
+      }
+    }
+  ],
+  "connections": {
+    "Nowe zgłoszenie formularza (Webhook)": {
+      "main": [
+        [
+          {
+            "node": "Zmapuj do kolumn",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Zmapuj do kolumn": {
+      "main": [
+        [
+          {
+            "node": "Dopisz wiersz",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1"
+  }
+}

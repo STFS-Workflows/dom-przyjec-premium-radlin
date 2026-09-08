@@ -1,0 +1,119 @@
+{
+  "name": "STFS — Aktualizacja CRM bez ręcznego wpisywania",
+  "nodes": [
+    {
+      "id": "6b59261a-cb2f-4750-a8fd-5ffdb777ec10",
+      "name": "Notatka: konfiguracja",
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [
+        80,
+        -40
+      ],
+      "parameters": {
+        "content": "## Auto-aktualizacja CRM\n\n**Trigger:** Webhook — dowolne źródło danych (formularz, e-mail, czat).\n\n**Do zrobienia:**\n1. Podmień \"Zapisz/Aktualizuj w CRM\" na realny endpoint (HubSpot/Pipedrive/Salesforce).\n2. Zmapuj pola w węźle Set na strukturę Twojego CRM.",
+        "height": 300,
+        "width": 380,
+        "color": 4
+      }
+    },
+    {
+      "id": "b540564c-412f-447d-a42b-6fef547f9659",
+      "name": "Nowe dane kontaktu (Webhook)",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2,
+      "position": [
+        80,
+        300
+      ],
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "dane-kontaktu",
+        "responseMode": "onReceived",
+        "options": {}
+      }
+    },
+    {
+      "id": "1749faf4-d4f5-4176-b6bf-0b9db4a0fdc7",
+      "name": "Zmapuj pola",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        340,
+        300
+      ],
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "574fcc17-f7b0-4a32-9791-f457c3459912",
+              "name": "fullName",
+              "value": "={{ $json.name }}",
+              "type": "string"
+            },
+            {
+              "id": "2ebdbbf7-2a97-47c2-9a2f-e1363d786938",
+              "name": "email",
+              "value": "={{ $json.email }}",
+              "type": "string"
+            },
+            {
+              "id": "f7efbe3b-f717-46f9-a2df-8ff6912e72a8",
+              "name": "source",
+              "value": "={{ $json.source || \"strona\" }}",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      }
+    },
+    {
+      "id": "62210761-bf1b-43ee-a51e-b2a5f7690cd5",
+      "name": "Zapisz/Aktualizuj w CRM",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        600,
+        300
+      ],
+      "parameters": {
+        "method": "POST",
+        "url": "https://YOUR-CRM.example.com/api/contacts/upsert",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ JSON.stringify($json) }}",
+        "options": {}
+      },
+      "notes": "Podmień na realny endpoint CRM."
+    }
+  ],
+  "connections": {
+    "Nowe dane kontaktu (Webhook)": {
+      "main": [
+        [
+          {
+            "node": "Zmapuj pola",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Zmapuj pola": {
+      "main": [
+        [
+          {
+            "node": "Zapisz/Aktualizuj w CRM",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1"
+  }
+}

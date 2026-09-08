@@ -1,0 +1,131 @@
+{
+  "name": "STFS — Segmentacja i personalizacja mailingów",
+  "nodes": [
+    {
+      "id": "a6fc7f72-85ab-44ba-982a-b3d488f77673",
+      "name": "Notatka: konfiguracja",
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [
+        80,
+        -40
+      ],
+      "parameters": {
+        "content": "## Segmentacja bazy mailingowej\n\n**Trigger:** Schedule lub Webhook po dodaniu kontaktu.\n\n**Do zrobienia:**\n1. Podmień \"Pobierz kontakty\" na Twoją bazę/CRM.\n2. Podmień \"Wyślij do segmentu\" na Mailchimp/Brevo/inny ESP.",
+        "height": 300,
+        "width": 380,
+        "color": 4
+      }
+    },
+    {
+      "id": "96ff1400-b390-48b1-ab2d-b0f4b5141d6c",
+      "name": "Codziennie 7:00",
+      "type": "n8n-nodes-base.scheduleTrigger",
+      "typeVersion": 1.2,
+      "position": [
+        80,
+        300
+      ],
+      "parameters": {
+        "rule": {
+          "interval": [
+            {
+              "field": "cronExpression",
+              "expression": "0 7 * * *"
+            }
+          ]
+        }
+      }
+    },
+    {
+      "id": "28daf8cf-3903-40e5-93c1-4cfd34c69723",
+      "name": "Pobierz kontakty",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        340,
+        300
+      ],
+      "parameters": {
+        "method": "GET",
+        "url": "https://YOUR-CRM.example.com/api/contacts",
+        "sendBody": false,
+        "specifyBody": "json",
+        "jsonBody": "={{ JSON.stringify($json) }}",
+        "options": {}
+      },
+      "notes": "Podmień na realną bazę kontaktów."
+    },
+    {
+      "id": "9d7c2efa-eee2-4a04-818b-8f8c7ef138a2",
+      "name": "Przypisz segment",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        600,
+        300
+      ],
+      "parameters": {
+        "jsCode": "const segment = ($json.purchases || 0) > 0 ? 'klienci' : 'leady';\nreturn [{ json: { ...$json, segment } }];"
+      }
+    },
+    {
+      "id": "5bb4e41d-b416-443c-a189-efed850d0ed1",
+      "name": "Wyślij do segmentu (ESP)",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        860,
+        300
+      ],
+      "parameters": {
+        "method": "POST",
+        "url": "https://YOUR-ESP.example.com/api/campaigns/send",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ JSON.stringify($json) }}",
+        "options": {}
+      },
+      "notes": "Podmień na Mailchimp/Brevo/inny ESP."
+    }
+  ],
+  "connections": {
+    "Codziennie 7:00": {
+      "main": [
+        [
+          {
+            "node": "Pobierz kontakty",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Pobierz kontakty": {
+      "main": [
+        [
+          {
+            "node": "Przypisz segment",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Przypisz segment": {
+      "main": [
+        [
+          {
+            "node": "Wyślij do segmentu (ESP)",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1"
+  }
+}

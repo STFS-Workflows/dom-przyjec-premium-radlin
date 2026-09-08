@@ -1,0 +1,137 @@
+{
+  "name": "STFS — Kategoryzacja transakcji i wydatków",
+  "nodes": [
+    {
+      "id": "4123441b-0a21-44b1-935b-1beb23ea535c",
+      "name": "Notatka: konfiguracja",
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [
+        80,
+        -40
+      ],
+      "parameters": {
+        "content": "## Kategoryzacja transakcji\n\n**Trigger:** Schedule — codzienne pobranie nowych transakcji.\n\n**Do zrobienia:**\n1. Podmień \"Pobierz transakcje\" na API banku/systemu księgowego.\n2. Podmień \"Zapisz kategorię\" na docelową bazę/arkusz.",
+        "height": 300,
+        "width": 380,
+        "color": 4
+      }
+    },
+    {
+      "id": "1ee15add-8892-4e91-a5b9-b2762c07e77f",
+      "name": "Codziennie 5:00",
+      "type": "n8n-nodes-base.scheduleTrigger",
+      "typeVersion": 1.2,
+      "position": [
+        80,
+        300
+      ],
+      "parameters": {
+        "rule": {
+          "interval": [
+            {
+              "field": "cronExpression",
+              "expression": "0 5 * * *"
+            }
+          ]
+        }
+      }
+    },
+    {
+      "id": "77b0cf00-b7db-48e6-975a-1b0f06790f15",
+      "name": "Pobierz transakcje",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        340,
+        300
+      ],
+      "parameters": {
+        "method": "GET",
+        "url": "https://YOUR-BANK.example.com/api/transactions",
+        "sendBody": false,
+        "specifyBody": "json",
+        "jsonBody": "={{ JSON.stringify($json) }}",
+        "options": {}
+      },
+      "notes": "Podmień na API banku/systemu księgowego."
+    },
+    {
+      "id": "12ef7058-ec5e-47ae-b634-8befde6a7305",
+      "name": "AI: przypisz kategorię kosztów",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        600,
+        300
+      ],
+      "parameters": {
+        "method": "POST",
+        "url": "https://api.openai.com/v1/chat/completions",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ JSON.stringify($json) }}",
+        "options": {}
+      },
+      "notes": "Model klasyfikuje transakcję do kategorii (paliwo, biuro, marketing itd.)."
+    },
+    {
+      "id": "0c3841d9-63a0-407f-a727-d8299cb571c9",
+      "name": "Zapisz kategorię",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        860,
+        300
+      ],
+      "parameters": {
+        "method": "POST",
+        "url": "https://YOUR-ACCOUNTING.example.com/api/transactions/categorize",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ JSON.stringify($json) }}",
+        "options": {}
+      },
+      "notes": "Podmień na docelową bazę/arkusz."
+    }
+  ],
+  "connections": {
+    "Codziennie 5:00": {
+      "main": [
+        [
+          {
+            "node": "Pobierz transakcje",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Pobierz transakcje": {
+      "main": [
+        [
+          {
+            "node": "AI: przypisz kategorię kosztów",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "AI: przypisz kategorię kosztów": {
+      "main": [
+        [
+          {
+            "node": "Zapisz kategorię",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1"
+  }
+}

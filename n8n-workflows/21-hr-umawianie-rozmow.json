@@ -1,0 +1,101 @@
+{
+  "name": "STFS — Automatyczne umawianie rozmów rekrutacyjnych",
+  "nodes": [
+    {
+      "id": "ed7bd967-86a9-481c-9446-538de90e3702",
+      "name": "Notatka: konfiguracja",
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [
+        80,
+        -40
+      ],
+      "parameters": {
+        "content": "## Umawianie rozmów rekrutacyjnych\n\n**Trigger:** Webhook — kandydat wybiera termin w formularzu.\n\n**Do zrobienia:**\n1. Podmień \"Utwórz wydarzenie\" na Google Calendar/Cal.com.\n2. Skonfiguruj SMTP do potwierdzenia.",
+        "height": 300,
+        "width": 380,
+        "color": 4
+      }
+    },
+    {
+      "id": "17007016-cfd5-4d40-ad64-176e2ed7582d",
+      "name": "Wybrano termin rozmowy (Webhook)",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2,
+      "position": [
+        80,
+        300
+      ],
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "rozmowa-rekrutacyjna",
+        "responseMode": "onReceived",
+        "options": {}
+      }
+    },
+    {
+      "id": "8d2d8ac0-fc91-434f-867b-6eebf9fc77ac",
+      "name": "Utwórz wydarzenie",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        340,
+        300
+      ],
+      "parameters": {
+        "method": "POST",
+        "url": "https://YOUR-CALENDAR.example.com/api/events",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ JSON.stringify($json) }}",
+        "options": {}
+      },
+      "notes": "Podmień na Google Calendar/Cal.com."
+    },
+    {
+      "id": "98f1b312-7ab4-42ac-a03f-5177bd683a25",
+      "name": "Wyślij potwierdzenie",
+      "type": "n8n-nodes-base.emailSend",
+      "typeVersion": 2.1,
+      "position": [
+        600,
+        300
+      ],
+      "parameters": {
+        "fromEmail": "hello@stfs.studio",
+        "toEmail": "={{ $json.email }}",
+        "subject": "Potwierdzenie rozmowy rekrutacyjnej",
+        "text": "Twoja rozmowa została umówiona: {{$json.date}} {{$json.time}}.",
+        "options": {}
+      }
+    }
+  ],
+  "connections": {
+    "Wybrano termin rozmowy (Webhook)": {
+      "main": [
+        [
+          {
+            "node": "Utwórz wydarzenie",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Utwórz wydarzenie": {
+      "main": [
+        [
+          {
+            "node": "Wyślij potwierdzenie",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1"
+  }
+}

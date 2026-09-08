@@ -1,0 +1,158 @@
+{
+  "name": "STFS — RAG chatbot na dokumentacji firmy",
+  "nodes": [
+    {
+      "id": "511202cd-8204-431b-941e-ac4d08330c2e",
+      "name": "Notatka: konfiguracja",
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [
+        80,
+        -40
+      ],
+      "parameters": {
+        "content": "## RAG chatbot\n\n**Trigger:** Webhook — pytanie użytkownika (strona/Slack/WhatsApp).\n\n**Do zrobienia (wymaga bazy wektorowej):**\n1. Osobny (jednorazowy) workflow do zaindeksowania dokumentów: podziel dokumenty na fragmenty, wygeneruj embeddingi, zapisz w bazie wektorowej (Pinecone/Supabase pgvector/Qdrant).\n2. Ten workflow: embedduj pytanie, wyszukaj najbliższe fragmenty, wyślij je jako kontekst do modelu.\n3. Podmień URL bazy wektorowej na swoją instancję.",
+        "height": 300,
+        "width": 380,
+        "color": 4
+      }
+    },
+    {
+      "id": "8d1a7fd1-f6cc-411f-8cc7-edee42462c15",
+      "name": "Pytanie użytkownika (Webhook)",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2,
+      "position": [
+        80,
+        300
+      ],
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "rag-pytanie",
+        "responseMode": "onReceived",
+        "options": {}
+      }
+    },
+    {
+      "id": "c27acfc4-8fc5-4b4d-81f7-982cbe70e163",
+      "name": "Embedduj pytanie",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        340,
+        300
+      ],
+      "parameters": {
+        "method": "POST",
+        "url": "https://api.openai.com/v1/embeddings",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ JSON.stringify($json) }}",
+        "options": {}
+      },
+      "notes": "Wywołanie modelu embeddingów."
+    },
+    {
+      "id": "bb5c3fcf-cd05-45e4-95a0-571eb0db0056",
+      "name": "Szukaj w bazie wektorowej",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        600,
+        300
+      ],
+      "parameters": {
+        "method": "POST",
+        "url": "https://YOUR-VECTOR-DB.example.com/query",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ JSON.stringify($json) }}",
+        "options": {}
+      },
+      "notes": "Podmień na Pinecone/Supabase pgvector/Qdrant."
+    },
+    {
+      "id": "7fce2971-4aba-483c-8259-f3591dbd189a",
+      "name": "AI: odpowiedz na podstawie kontekstu",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        860,
+        300
+      ],
+      "parameters": {
+        "method": "POST",
+        "url": "https://api.openai.com/v1/chat/completions",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ JSON.stringify($json) }}",
+        "options": {}
+      },
+      "notes": "Model odpowiada wyłącznie na podstawie znalezionych fragmentów dokumentacji."
+    },
+    {
+      "id": "a9622516-15a0-4504-bb56-8cdd27ef1d56",
+      "name": "Zwróć odpowiedź",
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.1,
+      "position": [
+        1120,
+        300
+      ],
+      "parameters": {
+        "respondWith": "json",
+        "responseBody": "={{ { \"status\": \"ok\" } }}"
+      }
+    }
+  ],
+  "connections": {
+    "Pytanie użytkownika (Webhook)": {
+      "main": [
+        [
+          {
+            "node": "Embedduj pytanie",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Embedduj pytanie": {
+      "main": [
+        [
+          {
+            "node": "Szukaj w bazie wektorowej",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Szukaj w bazie wektorowej": {
+      "main": [
+        [
+          {
+            "node": "AI: odpowiedz na podstawie kontekstu",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "AI: odpowiedz na podstawie kontekstu": {
+      "main": [
+        [
+          {
+            "node": "Zwróć odpowiedź",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1"
+  }
+}

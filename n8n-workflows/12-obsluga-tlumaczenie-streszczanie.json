@@ -1,0 +1,103 @@
+{
+  "name": "STFS — Tłumaczenie i streszczanie zgłoszeń",
+  "nodes": [
+    {
+      "id": "b87a82e2-beb2-4443-8975-4e7285d09d12",
+      "name": "Notatka: konfiguracja",
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [
+        80,
+        -40
+      ],
+      "parameters": {
+        "content": "## Tłumaczenie i streszczanie\n\n**Trigger:** Webhook z systemu zgłoszeń.\n\n**Do zrobienia:**\n1. Podmień węzeł AI na swój provider.\n2. Podmień \"Wyślij streszczenie\" na kanał zespołu (Slack/e-mail/helpdesk komentarz).",
+        "height": 300,
+        "width": 380,
+        "color": 4
+      }
+    },
+    {
+      "id": "083373c8-d447-4473-80c2-8e5bb4cf5f90",
+      "name": "Nowe zgłoszenie (Webhook)",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2,
+      "position": [
+        80,
+        300
+      ],
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "zgloszenie-jezykowe",
+        "responseMode": "onReceived",
+        "options": {}
+      }
+    },
+    {
+      "id": "f76104ac-94a5-4f28-b90a-38256b9f40d4",
+      "name": "AI: przetłumacz i streść",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        340,
+        300
+      ],
+      "parameters": {
+        "method": "POST",
+        "url": "https://api.openai.com/v1/chat/completions",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ JSON.stringify($json) }}",
+        "options": {}
+      },
+      "notes": "Model tłumaczy na polski i tworzy 2-3 zdaniowe streszczenie."
+    },
+    {
+      "id": "e75d9a20-fe40-4be4-8ea5-05ece6fe5879",
+      "name": "Wyślij streszczenie do zespołu",
+      "type": "n8n-nodes-base.slack",
+      "typeVersion": 2.2,
+      "position": [
+        600,
+        300
+      ],
+      "parameters": {
+        "select": "channel",
+        "channelId": {
+          "mode": "name",
+          "value": "#automatyzacje"
+        },
+        "text": "Streszczenie zgłoszenia:\n{{$json.aiResponse}}",
+        "otherOptions": {}
+      }
+    }
+  ],
+  "connections": {
+    "Nowe zgłoszenie (Webhook)": {
+      "main": [
+        [
+          {
+            "node": "AI: przetłumacz i streść",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "AI: przetłumacz i streść": {
+      "main": [
+        [
+          {
+            "node": "Wyślij streszczenie do zespołu",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1"
+  }
+}

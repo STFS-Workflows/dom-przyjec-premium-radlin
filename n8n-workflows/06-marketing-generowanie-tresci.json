@@ -1,0 +1,132 @@
+{
+  "name": "STFS — Generowanie treści i reklam",
+  "nodes": [
+    {
+      "id": "98ee67ef-be10-4501-8a74-273883809c08",
+      "name": "Notatka: konfiguracja",
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [
+        80,
+        -40
+      ],
+      "parameters": {
+        "content": "## Generator treści marketingowych\n\n**Trigger:** Manual — uruchamiasz ręcznie z brief-em wejściowym, lub podepnij pod formularz brief-u.\n\n**Do zrobienia:**\n1. Podmień węzeł AI na swój provider.\n2. Podmień \"Zapisz wersję roboczą\" na Google Sheets / Notion / CMS.",
+        "height": 300,
+        "width": 380,
+        "color": 4
+      }
+    },
+    {
+      "id": "e201621f-a0ba-4e11-aded-2227cc7aef68",
+      "name": "Start (podaj brief)",
+      "type": "n8n-nodes-base.manualTrigger",
+      "typeVersion": 1,
+      "position": [
+        80,
+        300
+      ],
+      "parameters": {}
+    },
+    {
+      "id": "72a414b9-d668-4d6f-89eb-8b760ecdc064",
+      "name": "Brief wejściowy",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        340,
+        300
+      ],
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "d1c5290a-9f40-44f5-9d45-8752639258b2",
+              "name": "brief",
+              "value": "Opisz produkt/kampanię tutaj",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      }
+    },
+    {
+      "id": "af8faef8-6311-4279-bb4d-d63905c4dc95",
+      "name": "AI: wygeneruj 3 warianty treści",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        600,
+        300
+      ],
+      "parameters": {
+        "method": "POST",
+        "url": "https://api.openai.com/v1/chat/completions",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ JSON.stringify($json) }}",
+        "options": {}
+      },
+      "notes": "Podmień na węzeł dostawcy AI (OpenAI/Claude/inny) lub uzupełnij Authorization: Bearer w Headers. To placeholder pokazujący, gdzie w przepływie wchodzi model językowy."
+    },
+    {
+      "id": "68abccfe-a07f-4dec-8576-7f7f4b6588a0",
+      "name": "Zapisz wersję roboczą",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        860,
+        300
+      ],
+      "parameters": {
+        "method": "POST",
+        "url": "https://YOUR-CMS.example.com/api/drafts",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ JSON.stringify($json) }}",
+        "options": {}
+      },
+      "notes": "Podmień na Google Sheets/Notion/CMS."
+    }
+  ],
+  "connections": {
+    "Start (podaj brief)": {
+      "main": [
+        [
+          {
+            "node": "Brief wejściowy",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Brief wejściowy": {
+      "main": [
+        [
+          {
+            "node": "AI: wygeneruj 3 warianty treści",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "AI: wygeneruj 3 warianty treści": {
+      "main": [
+        [
+          {
+            "node": "Zapisz wersję roboczą",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1"
+  }
+}

@@ -1,0 +1,161 @@
+{
+  "name": "STFS — Automatyczne raportowanie kampanii",
+  "nodes": [
+    {
+      "id": "9b685c16-7d6f-4af8-8346-86902dd28374",
+      "name": "Notatka: konfiguracja",
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [
+        80,
+        -40
+      ],
+      "parameters": {
+        "content": "## Cotygodniowy raport kampanii\n\n**Trigger:** Schedule — co poniedziałek rano.\n\n**Do zrobienia:**\n1. Podmień \"Pobierz dane Meta/Google Ads\" na oficjalne węzły/API tych platform (wymaga kont reklamowych + tokenów).\n2. Skonfiguruj Slack/e-mail do wysyłki raportu.",
+        "height": 300,
+        "width": 380,
+        "color": 4
+      }
+    },
+    {
+      "id": "ed8f7597-eaa1-41f4-a21b-80e9cc36abb1",
+      "name": "Poniedziałek 8:00",
+      "type": "n8n-nodes-base.scheduleTrigger",
+      "typeVersion": 1.2,
+      "position": [
+        80,
+        300
+      ],
+      "parameters": {
+        "rule": {
+          "interval": [
+            {
+              "field": "cronExpression",
+              "expression": "0 8 * * 1"
+            }
+          ]
+        }
+      }
+    },
+    {
+      "id": "8db29c0b-89a4-4520-9f61-c1d6bf0dd8bf",
+      "name": "Pobierz dane Meta Ads",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        340,
+        300
+      ],
+      "parameters": {
+        "method": "GET",
+        "url": "https://graph.facebook.com/v20.0/act_YOUR_ID/insights",
+        "sendBody": false,
+        "specifyBody": "json",
+        "jsonBody": "={{ JSON.stringify($json) }}",
+        "options": {}
+      },
+      "notes": "Wymaga tokenu Meta Marketing API."
+    },
+    {
+      "id": "926823a6-2519-4878-99df-e81d2d56bf8b",
+      "name": "Pobierz dane Google Ads",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        600,
+        300
+      ],
+      "parameters": {
+        "method": "GET",
+        "url": "https://googleads.googleapis.com/v16/customers/YOUR_ID/googleAds:search",
+        "sendBody": false,
+        "specifyBody": "json",
+        "jsonBody": "={{ JSON.stringify($json) }}",
+        "options": {}
+      },
+      "notes": "Wymaga Google Ads API + OAuth."
+    },
+    {
+      "id": "7f3aa538-aa7a-4aad-bb18-0da2a1549c83",
+      "name": "Połącz dane w raport",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        860,
+        300
+      ],
+      "parameters": {
+        "jsCode": "return [{ json: { summary: \"Połącz dane z obu źródeł tutaj\" } }];"
+      }
+    },
+    {
+      "id": "a9f71001-c8db-421f-a11f-c238842105e8",
+      "name": "Wyślij raport na Slack",
+      "type": "n8n-nodes-base.slack",
+      "typeVersion": 2.2,
+      "position": [
+        1120,
+        300
+      ],
+      "parameters": {
+        "select": "channel",
+        "channelId": {
+          "mode": "name",
+          "value": "#automatyzacje"
+        },
+        "text": "Tygodniowy raport kampanii:\n{{$json.summary}}",
+        "otherOptions": {}
+      }
+    }
+  ],
+  "connections": {
+    "Poniedziałek 8:00": {
+      "main": [
+        [
+          {
+            "node": "Pobierz dane Meta Ads",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Pobierz dane Meta Ads": {
+      "main": [
+        [
+          {
+            "node": "Pobierz dane Google Ads",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Pobierz dane Google Ads": {
+      "main": [
+        [
+          {
+            "node": "Połącz dane w raport",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Połącz dane w raport": {
+      "main": [
+        [
+          {
+            "node": "Wyślij raport na Slack",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1"
+  }
+}

@@ -3,3 +3,28 @@
 @media(max-width:850px){.container{width:min(100% - 40px,1200px)}.nav-row{grid-template-columns:1fr auto}.menu-button{display:block;justify-self:end;order:3}.button-nav{display:none}.primary-menu{display:none;position:absolute;top:82px;left:0;width:100%;padding:1.2rem 20px 1.6rem;background:var(--paper);border-top:1px solid var(--line);flex-direction:column;align-items:flex-start;gap:1.1rem}.primary-menu.is-open{display:flex}.hero{min-height:680px}.hero-bottom{display:block}.hero-bottom p{margin-bottom:1.7rem}.proof-grid{grid-template-columns:1fr 1fr}.proof-grid p{min-height:104px;padding:1.5rem 1.2rem}.proof-grid p:nth-child(2){border-right:1px solid #d3cbbb}.welcome-grid,.garden-grid,.standards-grid,.visit-grid,.reviews-grid{grid-template-columns:1fr;gap:3rem}.welcome-copy{padding-top:0}.section-heading,.gallery-header{grid-template-columns:1fr;gap:1rem;margin-bottom:2.7rem}.section-heading h2,.gallery-header h2{margin:.5rem 0}.image-break img{height:65vw;min-height:360px}.garden-media span{right:1rem;bottom:1rem}.gallery-layout{margin-left:20px;grid-template-columns:1fr}.gallery-aside{padding:0 20px 0 0}.review.featured{transform:none}.footer-row{grid-template-columns:1fr;align-items:start;gap:1.5rem}.footer-row p,.footer-row>div{justify-self:start;align-items:start}.footer-row p{display:none}}
 @media(max-width:520px){body{font-size:15px}.brand{font-size:.53rem}.brand strong{font-size:.8rem}.brand-mark{width:30px;height:30px}.hero{min-height:calc(100svh - 82px)}.hero-content{padding-top:4rem}.hero h1{font-size:3.1rem}.hero-note{right:20px;bottom:1.5rem}.proof-grid p{padding:1.35rem 1rem}.proof-grid b{font-size:1.5rem}.section{padding:4.5rem 0}.welcome h2,.section-heading h2,.garden h2,.gallery h2,.visit h2,.standards-title h2{font-size:2.7rem}.occasion-list article{grid-template-columns:38px 1fr;gap:1rem}.occasion-list article>a{grid-column:2}.standards-list article{grid-template-columns:38px 1fr}.gallery-aside p{font-size:1.1rem}.contact-card{padding:1.8rem}.contact-actions{display:grid}.contact-actions .button{width:100%}}
 @media(prefers-reduced-motion:reduce){html{scroll-behavior:auto}.button{transition:none}}
+
+/* DESIGN REVIEW: fakty i opinie są pokazane jak materiał redakcyjny,
+   bez równych boksów, dekoracyjnych awatarów i pozorowanej społeczności. */
+.hero-content{padding-bottom:clamp(3rem,7vh,5.6rem)}
+.hero h1{max-width:760px;font-size:clamp(3.7rem,7vw,6.6rem);line-height:.9}
+.hero-bottom{max-width:820px;align-items:flex-end}
+.hero-bottom p{max-width:490px;line-height:1.65}
+.venue-notes{background:#e6dfd2;border-bottom:1px solid #d3cbbb}
+.venue-notes-inner{display:grid;grid-template-columns:1fr 2.25fr;gap:2rem;align-items:center;padding:1.55rem 0 1.7rem}
+.venue-notes .kicker{margin:0}
+.venue-notes ul{display:grid;grid-template-columns:repeat(3,1fr);gap:1.2rem;margin:0;padding:0;list-style:none}
+.venue-notes li{display:flex;align-items:baseline;gap:.65rem;padding-left:1.2rem;border-left:1px solid #c6bca9}
+.venue-notes strong{font:500 clamp(1.45rem,2.4vw,2rem)/1 var(--serif);letter-spacing:-.04em}
+.venue-notes span{font-size:.74rem;line-height:1.35;color:#566061}
+.reviews{background:#ebe5d9}
+.reviews-grid{grid-template-columns:.9fr 1.1fr;gap:10%;align-items:start}
+.reviews-intro{padding-top:.5rem}
+.review-list{border-top:1px solid rgba(14,23,24,.22)}
+.review-list article{display:grid;grid-template-columns:58px 1fr;gap:1.2rem;padding:2.15rem 0;border-bottom:1px solid rgba(14,23,24,.22)}
+.review-list article>span{font:500 .66rem var(--mono);letter-spacing:.08em;color:#687372}
+.review-list blockquote{max-width:540px;margin:0 0 .85rem;font:500 clamp(1.55rem,2.55vw,2.45rem)/1.12 var(--serif);letter-spacing:-.045em}
+.review-list footer{font:.66rem var(--mono);letter-spacing:.075em;text-transform:uppercase;color:#687372}
+
+@media(max-width:850px){.venue-notes-inner{grid-template-columns:1fr;padding:1.8rem 0}.venue-notes ul{grid-template-columns:repeat(3,1fr)}.reviews-grid{grid-template-columns:1fr;gap:3rem}.review-list{max-width:700px}}
+@media(max-width:520px){.hero h1{font-size:clamp(3.35rem,15vw,4.35rem)}.venue-notes ul{grid-template-columns:1fr;gap:.8rem}.venue-notes li{padding:.2rem 0 .2rem 1rem}.review-list article{grid-template-columns:34px 1fr;gap:.75rem;padding:1.55rem 0}.review-list blockquote{font-size:1.55rem}}

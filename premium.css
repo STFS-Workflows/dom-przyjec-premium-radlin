@@ -94,3 +94,31 @@
 .sms-confirmation [data-sms-status]{font-size:.95rem}
 .hero-note,.proof-strip{display:none}
 @media(max-width:520px){body{font-size:16px}.primary-menu{font-size:.95rem}.text-link,.occasion-list a{font-size:.95rem}.review-rating{font-size:.95rem}.review-stars{font-size:1rem}.carousel-nav>button,.review-carousel .carousel-nav>button{font-size:.86rem}.footer-row{font-size:.84rem}}
+
+/* Nowy układ strony: mniej modułów do „odczytania”, więcej jednego, wyraźnego ciągu decyzji. */
+.site-header{position:absolute;top:0;left:0;width:100%;background:linear-gradient(180deg,rgba(6,15,16,.48),transparent);color:#fff}
+.site-header .brand-mark{border-color:rgba(255,255,255,.8)}
+.site-header .button-nav{background:transparent;border-color:rgba(255,255,255,.7);color:#fff}
+.site-header .button-nav:hover{background:#fff;color:var(--ink)}
+.hero{min-height:100svh}
+.hero-shade{background:linear-gradient(90deg,rgba(5,14,15,.84) 0%,rgba(5,14,15,.57) 42%,rgba(5,14,15,.08) 100%),linear-gradient(0deg,rgba(5,14,15,.36),transparent 38%)}
+.hero-content{padding:clamp(9rem,18vh,13rem) 0 clamp(3.4rem,7vh,5.5rem)}
+.hero h1{max-width:900px;margin:0;font-size:clamp(3.8rem,7vw,7.35rem);line-height:.91;text-wrap:balance}
+.hero-bottom{padding-top:clamp(4rem,12vh,9rem);align-items:center}
+.hero-bottom p{max-width:470px;font-size:1.16rem;line-height:1.55}
+.venue-notes,.availability-list{display:none}
+.welcome{background:#f8f5ee}
+.welcome-grid{grid-template-columns:1.05fr .95fr;gap:12%;align-items:center}
+.welcome-copy{padding-top:0}.welcome-copy .lead{font-size:1.42rem;line-height:1.48}.welcome-copy p:not(.lead){font-size:1.04rem;line-height:1.7}
+.image-break{max-height:none}.image-break img{height:clamp(380px,48vw,650px);object-position:center 52%}
+.occasions{background:#e6ddce}.section-heading{grid-template-columns:1fr .72fr;gap:12%;margin-bottom:3rem}.section-heading>p:last-child{max-width:390px}
+.occasion-list article{padding:2.6rem 0}.occasion-list h3{font-size:clamp(2rem,3vw,3rem)}
+.standards{background:#102426}.standards-grid{gap:12%}.standards-list article{padding:2.05rem 0}
+.garden{background:#f8f5ee}.garden-grid{gap:12%}.garden-media img{aspect-ratio:1.1}.garden-copy p:not(.kicker){font-size:1.04rem;line-height:1.7}
+.reviews{background:#e9e4d9}.reviews-grid{gap:12%}
+.gallery{background:#f8f5ee}.gallery-header{grid-template-columns:1fr .6fr;gap:12%;margin-bottom:2.6rem}.gallery-header>p:last-child{display:none}
+.inquiry-hub{background:#d8c4a4}.inquiry-heading{grid-template-columns:1.05fr .65fr;gap:12%;margin-bottom:2.7rem}.inquiry-hub .availability-list{display:none}
+.visit{background:#102426;color:#f6f3e9}.contact-card{padding:2.2rem 0 0;background:transparent;border-top:1px solid rgba(246,243,233,.45)}
+.footer{background:#102426;color:#d5ddd6}.brand-footer{color:#f6f3e9}
+@media(max-width:850px){.site-header{height:74px}.site-header .primary-menu{top:74px;color:var(--ink);box-shadow:0 12px 25px rgba(0,0,0,.12)}.site-header .menu-button span:not(.sr-only){background:#fff}.hero-content{padding-top:8.5rem}.hero-bottom{padding-top:4rem}.welcome-grid,.garden-grid,.standards-grid,.reviews-grid,.inquiry-heading{gap:2.6rem}.section-heading,.gallery-header{gap:1.1rem}.gallery-header{grid-template-columns:1fr}.gallery-header>p:last-child{display:none}}
+@media(max-width:520px){.hero{min-height:100svh}.hero h1{font-size:clamp(3.45rem,14vw,4.55rem);line-height:.92}.hero-content{padding-top:8rem}.hero-bottom{padding-top:3.5rem}.hero-bottom p{font-size:1.06rem}.image-break img{height:72vw;min-height:300px}.welcome-copy .lead{font-size:1.25rem}.occasion-list article{padding:2rem 0}.standards-list article{padding:1.65rem 0}.contact-card{padding-top:1.8rem}}

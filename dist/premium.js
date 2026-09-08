@@ -21,7 +21,7 @@ document.querySelectorAll('[data-carousel]').forEach((carousel) => {
   let activeIndex = 0;
   const show = (index) => {
     activeIndex = (index + slides.length) % slides.length;
-    slides[activeIndex].scrollIntoView({ behavior: 'smooth', block: 'nearest', inline: 'start' });
+    track.scrollTo({ left: slides[activeIndex].offsetLeft - track.offsetLeft, behavior: 'smooth' });
     dots.forEach((dot, dotIndex) => dot.setAttribute('aria-current', String(dotIndex === activeIndex)));
   };
   carousel.querySelector('[data-carousel-prev]')?.addEventListener('click', () => show(activeIndex - 1));
@@ -45,6 +45,8 @@ const inquiryHub = document.querySelector('[data-venue-modules]');
 if (inquiryHub) {
   const tabs = [...inquiryHub.querySelectorAll('[data-request-tab]')];
   const forms = [...inquiryHub.querySelectorAll('[data-request-form]')];
+  inquiryHub.querySelector('[data-request-tab="event"]')?.remove();
+  inquiryHub.querySelector('[data-request-type="event"]')?.remove();
   forms.forEach((form) => {
     if (form.elements.email) return;
     const label = document.createElement('label');
@@ -61,7 +63,7 @@ if (inquiryHub) {
     const slides = [...track.querySelectorAll('.carousel-slide')];
     const dots = [...carousel.querySelectorAll('[data-carousel-dot]')];
     let activeIndex = 0;
-    const show = (index) => { activeIndex = (index + slides.length) % slides.length; slides[activeIndex].scrollIntoView({ behavior: 'smooth', block: 'nearest', inline: 'start' }); dots.forEach((dot, dotIndex) => dot.setAttribute('aria-current', String(dotIndex === activeIndex))); };
+    const show = (index) => { activeIndex = (index + slides.length) % slides.length; track.scrollTo({ left: slides[activeIndex].offsetLeft - track.offsetLeft, behavior: 'smooth' }); dots.forEach((dot, dotIndex) => dot.setAttribute('aria-current', String(dotIndex === activeIndex))); };
     carousel.querySelector('[data-carousel-prev]')?.addEventListener('click', () => show(activeIndex - 1));
     carousel.querySelector('[data-carousel-next]')?.addEventListener('click', () => show(activeIndex + 1));
     dots.forEach((dot, index) => dot.addEventListener('click', () => show(index)));

@@ -1,6 +1,6 @@
 # Moduły zapytań — PREMIUM
 
-Strona zawiera trzy gotowe ścieżki: prośbę o oglądanie sali, konfigurator przyjęcia i catering. Bez integracji formularz tworzy wiadomość e-mail z pełnym podsumowaniem; nie udaje wysłania danych.
+Strona zawiera dwie gotowe ścieżki: prośbę o oglądanie sali i catering. Bez integracji formularz tworzy wiadomość e-mail z pełnym podsumowaniem; nie udaje wysłania danych.
 
 ## Włączenie n8n
 

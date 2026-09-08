@@ -76,3 +76,21 @@
 .image-caption,.gallery-carousel figcaption{display:none!important}.gallery-carousel .carousel-track{touch-action:pan-x;overscroll-behavior-x:contain;-webkit-overflow-scrolling:touch;cursor:grab;padding-bottom:1rem}.gallery-carousel .carousel-slide{flex-basis:min(76vw,820px)}.gallery-carousel .carousel-slide img{aspect-ratio:4/3!important;width:100%;object-fit:cover;object-position:center}.gallery-carousel .carousel-nav{margin-top:.55rem}.inquiry-hub .request-panels{padding:clamp(1.4rem,3vw,2.3rem);background:rgba(255,253,248,.58);border-top:1px solid rgba(14,23,24,.18)}.inquiry-hub .request-switch{margin-bottom:0}.inquiry-hub .request-switch button{padding:.9rem 0;font-size:.95rem}.inquiry-hub .availability-list{margin-bottom:2.8rem}.inquiry-hub .availability-list article{padding-top:1.6rem;padding-bottom:1.6rem}
 @media(max-width:520px){.gallery-carousel .carousel-slide{flex-basis:86vw}.gallery-carousel .carousel-track{padding-bottom:.8rem}.inquiry-hub .request-panels{padding:1.25rem 1rem}.inquiry-hub .request-switch{gap:1.4rem}.inquiry-hub .request-switch button{font-size:.9rem}}
 .gallery-carousel .carousel-slide img{height:auto!important}
+
+/* Tekst pomocniczy ma pozostać czytelny — bez mikrotypografii i sztucznej wersalikowej „etykiety”. */
+.primary-menu{font-size:.9rem}
+.button{font-size:.92rem}
+.text-link{font-size:.94rem;letter-spacing:0}
+.occasion-list a{font-size:.9rem;letter-spacing:0;text-transform:none}
+.section-heading>p:last-child,.gallery-header>p:last-child,.occasion-list p,.availability-list p{font-size:1rem;line-height:1.62}
+.review-rating{gap:.75rem;margin-bottom:1.2rem;font:600 .98rem/1.35 var(--sans);letter-spacing:0;text-transform:none;color:#435052}
+.review-stars{font-size:1.05rem;letter-spacing:.08em}
+.review-carousel footer{display:none}
+.carousel-nav>button,.review-carousel .carousel-nav>button{font:600 .9rem/1.3 var(--sans);letter-spacing:0}
+.card-label{display:none}
+.email,.contact-card address{font-size:.98rem;line-height:1.6}
+.footer-row{font-size:.86rem}
+.request-form label,.request-form legend{font-size:.98rem}
+.sms-confirmation [data-sms-status]{font-size:.95rem}
+.hero-note,.proof-strip{display:none}
+@media(max-width:520px){body{font-size:16px}.primary-menu{font-size:.95rem}.text-link,.occasion-list a{font-size:.95rem}.review-rating{font-size:.95rem}.review-stars{font-size:1rem}.carousel-nav>button,.review-carousel .carousel-nav>button{font-size:.86rem}.footer-row{font-size:.84rem}}

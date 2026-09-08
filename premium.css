@@ -158,3 +158,20 @@
   .request-switch button[aria-selected="true"]{box-shadow:0 7px 16px rgba(27,53,53,.2)}
 }
 @media(prefers-reduced-motion:reduce){.hero-image,.image-break img,.garden-media img{animation:none!important;transition:none!important}}
+
+/* Warstwy światła i reakcje interfejsu nadają stronie wrażenie dopracowanej oprawy, bez ciągłego animowania fotografii. */
+.site-header{box-shadow:0 1px 0 rgba(14,23,24,.08)}
+.hero:before{content:"";position:absolute;z-index:-1;inset:-15%;pointer-events:none;background:radial-gradient(circle at 78% 20%,rgba(238,211,167,.22),transparent 24%),radial-gradient(circle at 42% 105%,rgba(91,151,140,.18),transparent 33%);mix-blend-mode:screen}
+.hero h1{max-width:12ch;text-shadow:0 12px 40px rgba(0,0,0,.16)}
+.hero h1 em{position:relative;text-shadow:none}.hero h1 em:after{content:"";position:absolute;left:3%;right:3%;bottom:-.13em;height:1px;background:rgba(238,229,214,.62);transform:scaleX(.72);transform-origin:left}
+.button{position:relative;isolation:isolate;overflow:hidden;border-radius:2px;transition:transform .25s cubic-bezier(.22,1,.36,1),box-shadow .25s ease,background-color .25s ease}
+.button:after{content:"";position:absolute;z-index:-1;inset:0;background:linear-gradient(110deg,transparent 28%,rgba(255,255,255,.35) 47%,transparent 65%);transform:translateX(-130%);transition:transform .6s cubic-bezier(.22,1,.36,1)}
+.button:hover{box-shadow:0 12px 26px rgba(7,18,19,.18)}.button:hover:after{transform:translateX(130%)}
+.button-dark:hover{background:#294a49}.button-nav:hover{background:#294a49}
+.image-break:before{content:"";position:absolute;z-index:1;inset:0;pointer-events:none;border:1px solid rgba(255,255,255,.16);box-shadow:inset 0 0 0 14px rgba(15,27,28,.08)}
+.garden-media,.gallery-carousel .carousel-slide{overflow:hidden}.garden-media:before,.gallery-carousel .carousel-slide:before{content:"";position:absolute;z-index:1;inset:0;pointer-events:none;background:linear-gradient(120deg,rgba(255,255,255,.16),transparent 28%,transparent 72%,rgba(255,255,255,.1));opacity:.7}
+.gallery-carousel .carousel-slide{border:1px solid rgba(22,40,40,.1)}.gallery-carousel .carousel-slide img{transition:transform .7s cubic-bezier(.22,1,.36,1),filter .7s ease}.gallery-carousel .carousel-slide:hover img{transform:scale(1.045);filter:saturate(1.07) contrast(1.015)}
+.carousel-dots button{transition:transform .25s ease,background-color .25s ease}.carousel-dots button[aria-current="true"]{transform:scaleY(1.7)}
+@keyframes premium-ambient-light{from{opacity:.55;transform:translate3d(-1.5%,-1%,0) scale(1)}to{opacity:.9;transform:translate3d(1.5%,1%,0) scale(1.04)}}
+@media(min-width:851px) and (prefers-reduced-motion:no-preference){.hero:before{animation:premium-ambient-light 9s ease-in-out infinite alternate}}
+@media(max-width:850px){.hero:before{inset:-30%;opacity:.75}.button:hover{transform:none}.button:hover:after{transform:translateX(-130%)}}

@@ -46,3 +46,6 @@
 @media(max-width:850px){.carousel-slide{flex-basis:84vw}.reviews-grid{gap:2.6rem}}
 @media(max-width:520px){.hero{min-height:640px}.hero-content{padding:4.1rem 0 2.3rem}.hero h1{font-size:clamp(3.2rem,13.6vw,4rem);line-height:.93}.hero-bottom p{font-size:1rem;line-height:1.58}.hero-bottom .button{width:100%}.carousel-track{padding-left:20px;padding-right:20px;gap:.7rem}.carousel-slide{flex-basis:86vw}.carousel-nav{width:calc(100% - 40px);margin-top:1rem}.carousel-nav>button{font-size:.61rem}.gallery-carousel .carousel-slide img{aspect-ratio:1.08}.review-carousel .carousel-track{padding:0}.review-carousel .carousel-slide{padding:1.25rem 0}.review-carousel blockquote{font-size:1.52rem}.motion-ready .reveal{transform:translateY(12px)}}
 @media(prefers-reduced-motion:reduce){.carousel-track{scroll-behavior:auto}.reveal{opacity:1;transform:none;transition:none}}
+
+/* Subtelny sygnał zaufania: gwiazdki i źródło nie konkurują z cytatem. */
+.review-rating{display:flex;align-items:center;gap:.7rem;margin-bottom:1.15rem;font:.61rem var(--mono);letter-spacing:.07em;text-transform:uppercase;color:#687372}.review-stars{color:#a87236;font-size:.78rem;letter-spacing:.12em;line-height:1}.review-carousel footer{border-top:1px solid rgba(14,23,24,.16);padding-top:.8rem;width:max-content}

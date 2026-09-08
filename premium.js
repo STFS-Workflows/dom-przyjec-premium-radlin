@@ -40,10 +40,14 @@ document.querySelectorAll('[data-carousel]').forEach((carousel) => {
 });
 
 document.documentElement.classList.add('motion-ready');
-if (!window.matchMedia('(prefers-reduced-motion: reduce)').matches && 'IntersectionObserver' in window) {
+const reduceMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+if (!reduceMotion && 'IntersectionObserver' in window) {
   const observer = new IntersectionObserver((entries) => entries.forEach((entry) => { if (entry.isIntersecting) { entry.target.classList.add('is-visible'); observer.unobserve(entry.target); } }), { threshold: 0.12 });
   document.querySelectorAll('.reveal').forEach((element) => observer.observe(element));
-} else document.querySelectorAll('.reveal').forEach((element) => element.classList.add('is-visible'));
+  const sectionObserver = new IntersectionObserver((entries) => entries.forEach((entry) => { if (entry.isIntersecting) { entry.target.classList.add('is-in-view'); sectionObserver.unobserve(entry.target); } }), { threshold: 0.1 });
+  document.querySelectorAll('main > .section, main > .image-break').forEach((element) => sectionObserver.observe(element));
+} else document.querySelectorAll('.reveal, main > .section, main > .image-break').forEach((element) => element.classList.add('is-visible', 'is-in-view'));
+requestAnimationFrame(() => document.documentElement.classList.add('site-ready'));
 
 // Ten moduł działa z e-mailem od razu. CRM, SMS i n8n włącza konfiguracja endpointów podczas wdrożenia.
 const inquiryHub = document.querySelector('[data-venue-modules]');
@@ -91,6 +95,9 @@ if (inquiryHub) {
   const showForm = (type) => {
     tabs.forEach((tab) => tab.setAttribute('aria-selected', String(tab.dataset.requestTab === type)));
     forms.forEach((form) => { form.hidden = form.dataset.requestType !== type; });
+    const panels = inquiryHub.querySelector('.request-panels');
+    panels?.classList.remove('panel-swap');
+    requestAnimationFrame(() => panels?.classList.add('panel-swap'));
     result.textContent = '';
   };
   tabs.forEach((tab) => tab.addEventListener('click', () => showForm(tab.dataset.requestTab)));

@@ -135,3 +135,24 @@
 .gallery-carousel .carousel-slide{padding:.5rem;background:#fffdf8;box-shadow:0 14px 32px rgba(29,42,39,.1)}
 @media(max-width:850px){.request-switch{overflow-x:auto;padding-bottom:.25rem}.inquiry-hub .request-panels{padding:1.5rem;border-radius:20px}.sms-confirmation>div{grid-template-columns:1fr}.sms-confirmation .button{width:100%}}
 @media(max-width:520px){.inquiry-heading p{font-size:1rem}.request-switch{gap:.55rem}.request-switch button,.inquiry-hub .request-switch button{font-size:.94rem;padding:.7rem .9rem}.inquiry-hub .request-panels{padding:1.15rem;border-radius:18px}.request-form input,.request-form select{min-height:52px}.request-form .button-dark{width:100%}}
+
+/* Ruch buduje atmosferę: wejście, oddech zdjęć i wyraźna zmiana kroku formularza. */
+@keyframes premium-rise{from{opacity:0;transform:translateY(22px)}to{opacity:1;transform:translateY(0)}}
+@keyframes premium-image-drift{0%,100%{transform:scale(1.02) translate3d(0,0,0)}50%{transform:scale(1.075) translate3d(-.6%,-.45%,0)}}
+@keyframes premium-panel-in{from{opacity:.35;transform:translateY(9px) scale(.992)}to{opacity:1;transform:translateY(0) scale(1)}}
+@media(prefers-reduced-motion:no-preference){
+  .motion-ready:not(.site-ready) .hero h1,.motion-ready:not(.site-ready) .hero-bottom{opacity:0;transform:translateY(22px)}
+  .motion-ready.site-ready .hero h1{animation:premium-rise .82s cubic-bezier(.22,1,.36,1) both}
+  .motion-ready.site-ready .hero-bottom{animation:premium-rise .82s .16s cubic-bezier(.22,1,.36,1) both}
+  .hero-image{animation:premium-image-drift 18s ease-in-out infinite alternate;will-change:transform}
+  .image-break img,.garden-media img{transition:transform .8s cubic-bezier(.22,1,.36,1),filter .8s ease;will-change:transform}
+  .image-break:hover img,.garden-media:hover img{transform:scale(1.035);filter:saturate(1.06)}
+  .motion-ready main>.section,.motion-ready main>.image-break{opacity:0;transform:translateY(28px);transition:opacity .72s cubic-bezier(.22,1,.36,1),transform .72s cubic-bezier(.22,1,.36,1)}
+  .motion-ready main>.section.is-in-view,.motion-ready main>.image-break.is-in-view{opacity:1;transform:none}
+  .gallery-carousel .carousel-slide{transition:transform .45s cubic-bezier(.22,1,.36,1),box-shadow .45s ease}
+  .gallery-carousel .carousel-slide:hover{transform:translateY(-7px);box-shadow:0 24px 44px rgba(29,42,39,.18)}
+  .request-panels.panel-swap{animation:premium-panel-in .34s cubic-bezier(.22,1,.36,1) both}
+  .request-switch button{transition:background-color .18s ease,transform .18s ease,box-shadow .18s ease}
+  .request-switch button[aria-selected="true"]{box-shadow:0 7px 16px rgba(27,53,53,.2)}
+}
+@media(prefers-reduced-motion:reduce){.hero-image,.image-break img,.garden-media img{animation:none!important;transition:none!important}}

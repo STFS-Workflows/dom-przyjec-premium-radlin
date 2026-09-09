@@ -1,150 +1,231 @@
-/* Minimalna interakcja nawigacji. Nie zawiera automatyzacji, analityki ani wysyłki formularzy. */
-const menuButton = document.querySelector('.menu-button');
-const menu = document.querySelector('.primary-menu');
-if (menuButton && menu) {
-  menuButton.addEventListener('click', () => {
-    const isOpen = menuButton.getAttribute('aria-expanded') === 'true';
-    menuButton.setAttribute('aria-expanded', String(!isOpen));
-    menu.classList.toggle('is-open', !isOpen);
-  });
-  menu.querySelectorAll('a').forEach((link) => link.addEventListener('click', () => {
-    menuButton.setAttribute('aria-expanded', 'false'); menu.classList.remove('is-open');
-  }));
-}
-document.querySelector('#year').textContent = new Date().getFullYear();
+(() => {
+  const documentRoot = document.documentElement;
+  const body = document.body;
+  const reduceMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
 
-// Główne CTA prowadzą od razu do krótkiego zapytania, zamiast zatrzymywać gościa przy samych danych kontaktowych.
-document.querySelectorAll('.hero .button-cream, .welcome-copy .text-link, .occasion-list a').forEach((link) => {
-  link.setAttribute('href', '#zapytanie');
-});
+  documentRoot.classList.add('motion-ready');
+  requestAnimationFrame(() => documentRoot.classList.add('site-ready'));
 
-// Karuzele są natywne dla dotyku. JavaScript dodaje wyłącznie przyciski i pasek pozycji.
-document.querySelectorAll('[data-carousel]').forEach((carousel) => {
-  const track = carousel.querySelector('[data-carousel-track]');
-  const slides = [...track.querySelectorAll('.carousel-slide')];
-  const dots = [...carousel.querySelectorAll('[data-carousel-dot]')];
-  let activeIndex = 0;
-  const show = (index) => {
-    activeIndex = (index + slides.length) % slides.length;
-    track.scrollTo({ left: slides[activeIndex].offsetLeft - track.offsetLeft, behavior: 'smooth' });
-    dots.forEach((dot, dotIndex) => dot.setAttribute('aria-current', String(dotIndex === activeIndex)));
+  const header = document.querySelector('[data-header]');
+  const updateHeader = () => header?.classList.toggle('is-scrolled', window.scrollY > 24);
+  updateHeader();
+  window.addEventListener('scroll', updateHeader, { passive: true });
+
+  const menuToggle = document.querySelector('[data-menu-toggle]');
+  const menu = document.querySelector('[data-menu]');
+  const setMenu = (open) => {
+    menuToggle?.setAttribute('aria-expanded', String(open));
+    const label = menuToggle?.querySelector('.sr-only');
+    if (label) label.textContent = open ? 'Zamknij menu' : 'Otwórz menu';
+    menu?.classList.toggle('is-open', open);
+    body.classList.toggle('menu-open', open);
   };
-  carousel.querySelector('[data-carousel-prev]')?.addEventListener('click', () => show(activeIndex - 1));
-  carousel.querySelector('[data-carousel-next]')?.addEventListener('click', () => show(activeIndex + 1));
-  dots.forEach((dot, index) => dot.addEventListener('click', () => show(index)));
-  track.addEventListener('scroll', () => {
-    const closest = slides.reduce((best, slide, index) => Math.abs(slide.getBoundingClientRect().left - track.getBoundingClientRect().left) < Math.abs(slides[best].getBoundingClientRect().left - track.getBoundingClientRect().left) ? index : best, 0);
-    activeIndex = closest;
-    dots.forEach((dot, index) => dot.setAttribute('aria-current', String(index === activeIndex)));
-  }, { passive: true });
-});
-
-document.documentElement.classList.add('motion-ready');
-const reduceMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
-if (!reduceMotion && 'IntersectionObserver' in window) {
-  const observer = new IntersectionObserver((entries) => entries.forEach((entry) => { if (entry.isIntersecting) { entry.target.classList.add('is-visible'); observer.unobserve(entry.target); } }), { threshold: 0.12 });
-  document.querySelectorAll('.reveal').forEach((element) => observer.observe(element));
-  const sectionObserver = new IntersectionObserver((entries) => entries.forEach((entry) => { if (entry.isIntersecting) { entry.target.classList.add('is-in-view'); sectionObserver.unobserve(entry.target); } }), { threshold: 0.1 });
-  document.querySelectorAll('main > .section, main > .image-break').forEach((element) => sectionObserver.observe(element));
-} else document.querySelectorAll('.reveal, main > .section, main > .image-break').forEach((element) => element.classList.add('is-visible', 'is-in-view'));
-requestAnimationFrame(() => document.documentElement.classList.add('site-ready'));
-
-// Ten moduł działa z e-mailem od razu. CRM, SMS i n8n włącza konfiguracja endpointów podczas wdrożenia.
-const inquiryHub = document.querySelector('[data-venue-modules]');
-if (inquiryHub) {
-  const tabs = [...inquiryHub.querySelectorAll('[data-request-tab]')];
-  const forms = [...inquiryHub.querySelectorAll('[data-request-form]')];
-  inquiryHub.querySelector('[data-request-tab="event"]')?.remove();
-  inquiryHub.querySelector('[data-request-type="event"]')?.remove();
-  forms.forEach((form) => {
-    if (form.elements.email) return;
-    const label = document.createElement('label');
-    label.textContent = 'Adres e-mail';
-    const input = document.createElement('input');
-    input.type = 'email'; input.name = 'email'; input.autocomplete = 'email'; input.required = true;
-    label.append(input); form.querySelector('.form-grid')?.append(label);
-  });
-  const result = inquiryHub.querySelector('[data-request-result]');
-  const integrations = window.VENUE_INTEGRATIONS || {};
-  const escapeHtml = (value) => String(value || '').replace(/[&<>"']/g, (char) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#039;' }[char]));
-  const mountCarousel = (carousel) => {
-    const track = carousel.querySelector('[data-carousel-track]');
-    const slides = [...track.querySelectorAll('.carousel-slide')];
-    const dots = [...carousel.querySelectorAll('[data-carousel-dot]')];
-    let activeIndex = 0;
-    const show = (index) => { activeIndex = (index + slides.length) % slides.length; track.scrollTo({ left: slides[activeIndex].offsetLeft - track.offsetLeft, behavior: 'smooth' }); dots.forEach((dot, dotIndex) => dot.setAttribute('aria-current', String(dotIndex === activeIndex))); };
-    carousel.querySelector('[data-carousel-prev]')?.addEventListener('click', () => show(activeIndex - 1));
-    carousel.querySelector('[data-carousel-next]')?.addEventListener('click', () => show(activeIndex + 1));
-    dots.forEach((dot, index) => dot.addEventListener('click', () => show(index)));
-  };
-  if (integrations.availabilityEndpoint) fetch(integrations.availabilityEndpoint).then((response) => response.ok ? response.json() : Promise.reject()).then((data) => {
-    if (!Array.isArray(data.availability) || !data.availability.length) return;
-    inquiryHub.querySelector('.availability-list').innerHTML = data.availability.slice(0, 3).map((item) => `<article><h3>${escapeHtml(item.title)}</h3><p>${escapeHtml(item.text)}</p></article>`).join('');
-  }).catch(() => {});
-  if (integrations.reviewsEndpoint) fetch(integrations.reviewsEndpoint).then((response) => response.ok ? response.json() : Promise.reject()).then((data) => {
-    const reviews = Array.isArray(data.reviews) ? data.reviews.slice(0, 6) : [];
-    const current = document.querySelector('.review-carousel');
-    if (!current || !reviews.length) return;
-    current.querySelector('[data-carousel-track]').innerHTML = reviews.map((review) => `<article class="review-slide carousel-slide"><div class="review-rating"><span class="review-stars" aria-label="Ocena ${Number(review.rating) || 5} na pięć">★★★★★</span><span>${escapeHtml(review.author)} · Google</span></div><blockquote>${escapeHtml(review.text)}</blockquote><footer>${escapeHtml(review.context || 'opinia gościa')}</footer></article>`).join('');
-    current.querySelector('.carousel-dots').innerHTML = reviews.map((_, index) => `<button type="button" data-carousel-dot aria-label="Opinia ${index + 1}"${index === 0 ? ' aria-current="true"' : ''}></button>`).join('');
-    const replacement = current.cloneNode(true); current.replaceWith(replacement); mountCarousel(replacement);
-  }).catch(() => {});
-  const cateringForm = inquiryHub.querySelector('[data-request-type="catering"]');
-  const smsStatus = inquiryHub.querySelector('[data-sms-status]');
-  const setSmsStatus = (message) => { if (smsStatus) smsStatus.textContent = message; };
-  const showForm = (type) => {
-    tabs.forEach((tab) => tab.setAttribute('aria-selected', String(tab.dataset.requestTab === type)));
-    forms.forEach((form) => { form.hidden = form.dataset.requestType !== type; });
-    const panels = inquiryHub.querySelector('.request-panels');
-    panels?.classList.remove('panel-swap');
-    requestAnimationFrame(() => panels?.classList.add('panel-swap'));
-    result.textContent = '';
-  };
-  tabs.forEach((tab) => tab.addEventListener('click', () => showForm(tab.dataset.requestTab)));
-  inquiryHub.querySelector('[data-sms-start]')?.addEventListener('click', async () => {
-    const phone = cateringForm?.elements.phone?.value;
-    if (!phone) { setSmsStatus('Najpierw wpisz numer telefonu.'); return; }
-    if (!integrations.smsStartEndpoint) { setSmsStatus('Wersja podglądowa: bramka SMS zostanie włączona po podłączeniu n8n i dostawcy SMS.'); return; }
-    setSmsStatus('Wysyłamy kod…');
-    try {
-      const response = await fetch(integrations.smsStartEndpoint, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ venue: inquiryHub.dataset.venueName, phone }) });
-      if (!response.ok) throw new Error('sms_start_failed');
-      setSmsStatus('Kod został wysłany. Wpisz go poniżej.');
-    } catch (_) { setSmsStatus('Nie udało się wysłać kodu. Spróbuj ponownie albo zadzwoń do nas.'); }
-  });
-  inquiryHub.querySelector('[data-sms-verify]')?.addEventListener('click', async () => {
-    const code = cateringForm?.elements.smsCode?.value?.trim();
-    if (!/^\d{6}$/.test(code || '')) { setSmsStatus('Wpisz sześciocyfrowy kod z SMS-a.'); return; }
-    if (!integrations.smsVerifyEndpoint) { setSmsStatus('Wersja podglądowa nie weryfikuje kodów SMS.'); return; }
-    setSmsStatus('Sprawdzamy kod…');
-    try {
-      const response = await fetch(integrations.smsVerifyEndpoint, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ venue: inquiryHub.dataset.venueName, phone: cateringForm.elements.phone.value, code }) });
-      if (!response.ok) throw new Error('sms_verify_failed');
-      cateringForm.dataset.smsVerified = 'true';
-      setSmsStatus('Numer został potwierdzony. Możesz wysłać zapytanie.');
-    } catch (_) { setSmsStatus('Kod jest nieprawidłowy lub wygasł. Poproś o nowy.'); }
-  });
-  forms.forEach((form) => form.addEventListener('submit', async (event) => {
-    event.preventDefault();
-    if (!form.reportValidity()) return;
-    if (form.dataset.requestType === 'catering' && inquiryHub.dataset.smsRequired === 'true' && form.dataset.smsVerified !== 'true') { setSmsStatus('Przed wysłaniem potwierdź numer kodem SMS.'); return; }
-    const data = new FormData(form);
-    const extras = data.getAll('extras');
-    const details = [...data.entries()].filter(([key]) => !['extras', 'smsCode'].includes(key)).map(([key, value]) => `${key}: ${value}`).concat(extras.length ? [`dodatki: ${extras.join(', ')}`] : []);
-    const typeLabel = { visit: 'Oglądanie sali', event: 'Konfiguracja przyjęcia', catering: 'Catering' }[form.dataset.requestType];
-    const payload = { venue: inquiryHub.dataset.venueName, type: form.dataset.requestType, submittedAt: new Date().toISOString(), fields: Object.fromEntries(data.entries()), extras };
-    if (integrations.inquiryEndpoint) {
-      result.innerHTML = '<strong>Wysyłamy zapytanie…</strong><p>To potrwa tylko chwilę.</p>';
-      try {
-        const response = await fetch(integrations.inquiryEndpoint, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(payload) });
-        if (!response.ok) throw new Error('request_failed');
-        result.innerHTML = '<strong>Zapytanie zostało wysłane.</strong><p>Skontaktujemy się, aby potwierdzić szczegóły.</p>';
-        form.reset();
-        return;
-      } catch (_) { result.innerHTML = '<strong>Nie udało się wysłać formularza.</strong><p>Skorzystaj z przygotowanej wiadomości e-mail lub zadzwoń do nas.</p>'; }
+  menuToggle?.addEventListener('click', () => setMenu(menuToggle.getAttribute('aria-expanded') !== 'true'));
+  menu?.querySelectorAll('a').forEach((link) => link.addEventListener('click', () => setMenu(false)));
+  document.addEventListener('keydown', (event) => {
+    if (event.key === 'Escape' && menuToggle?.getAttribute('aria-expanded') === 'true') {
+      setMenu(false);
+      menuToggle.focus();
     }
-    const subject = encodeURIComponent(`${typeLabel} — ${inquiryHub.dataset.venueName}`);
-    const body = encodeURIComponent(`${typeLabel}\n\n${details.join('\n')}`);
-    result.innerHTML = `<strong>Podsumowanie jest gotowe.</strong><p>Sprawdź dane i wyślij je w przygotowanej wiadomości. Termin nie jest rezerwowany automatycznie.</p><a class="text-link" href="mailto:${inquiryHub.dataset.contactEmail}?subject=${subject}&body=${body}">Otwórz wiadomość e-mail</a>`;
-  }));
-}
+  });
+
+  if (!reduceMotion && 'IntersectionObserver' in window) {
+    const revealObserver = new IntersectionObserver((entries) => {
+      entries.forEach((entry) => {
+        if (!entry.isIntersecting) return;
+        entry.target.classList.add('is-visible');
+        revealObserver.unobserve(entry.target);
+      });
+    }, { threshold: 0.12, rootMargin: '0px 0px -40px' });
+    document.querySelectorAll('.reveal').forEach((element) => revealObserver.observe(element));
+  } else {
+    document.querySelectorAll('.reveal').forEach((element) => element.classList.add('is-visible'));
+  }
+
+  const reviews = [...document.querySelectorAll('[data-review]')];
+  const reviewCount = document.querySelector('[data-review-count]');
+  let activeReview = 0;
+  const showReview = (nextIndex) => {
+    if (!reviews.length) return;
+    activeReview = (nextIndex + reviews.length) % reviews.length;
+    reviews.forEach((review, index) => {
+      review.hidden = index !== activeReview;
+      review.classList.toggle('is-active', index === activeReview);
+    });
+    if (reviewCount) reviewCount.textContent = `${String(activeReview + 1).padStart(2, '0')} / ${String(reviews.length).padStart(2, '0')}`;
+  };
+  document.querySelector('[data-review-prev]')?.addEventListener('click', () => showReview(activeReview - 1));
+  document.querySelector('[data-review-next]')?.addEventListener('click', () => showReview(activeReview + 1));
+
+  const form = document.querySelector('[data-catering-form]');
+  if (form) {
+    const steps = [...form.querySelectorAll('[data-form-step]')];
+    const nextButton = form.querySelector('[data-next]');
+    const prevButton = form.querySelector('[data-prev]');
+    const submitButton = form.querySelector('[data-submit]');
+    const stepLabel = document.querySelector('[data-step-label]');
+    const stepTitle = document.querySelector('[data-step-title]');
+    const progress = document.querySelector('[data-progress]');
+    const result = document.querySelector('[data-form-result]');
+    const card = form.closest('.form-card');
+    const titles = ['O wydarzeniu', 'Zakres obsługi', 'Dane kontaktowe'];
+    let currentStep = 0;
+
+    const formatDate = (value) => {
+      if (!value) return '—';
+      const [year, month, day] = value.split('-').map(Number);
+      return new Intl.DateTimeFormat('pl-PL', { day: 'numeric', month: 'long', year: 'numeric' }).format(new Date(year, month - 1, day));
+    };
+
+    const updateSummary = () => {
+      const data = new FormData(form);
+      const values = {
+        event: data.get('event') || '—',
+        date: formatDate(data.get('date')),
+        guests: data.get('guests') ? `${data.get('guests')} osób` : '—',
+        service: data.get('service') || '—'
+      };
+      Object.entries(values).forEach(([key, value]) => {
+        const output = document.querySelector(`[data-summary-${key}]`);
+        if (output) output.textContent = value;
+      });
+    };
+
+    const clearError = (name) => {
+      if (!name) return;
+      const error = form.querySelector(`[data-error-for="${name}"]`);
+      if (error) error.textContent = '';
+      form.querySelector(`[name="${name}"]`)?.closest('.field')?.classList.remove('has-error');
+    };
+
+    const setError = (field, message) => {
+      const error = form.querySelector(`[data-error-for="${field.name}"]`);
+      if (error) error.textContent = message;
+      field.closest('.field')?.classList.add('has-error');
+    };
+
+    const errorMessage = (field) => {
+      if (field.validity.valueMissing) return field.type === 'radio' ? 'Wybierz jedną z opcji.' : field.type === 'checkbox' ? 'Zaznacz zgodę, aby wysłać zapytanie.' : 'Uzupełnij to pole.';
+      if (field.validity.typeMismatch) return 'Wpisz poprawny adres e-mail.';
+      if (field.validity.rangeUnderflow) return `Minimalna wartość to ${field.min}.`;
+      if (field.validity.rangeOverflow) return `Maksymalna wartość to ${field.max}.`;
+      return 'Sprawdź wpisaną wartość.';
+    };
+
+    const validateStep = () => {
+      const fields = [...steps[currentStep].querySelectorAll('input, select, textarea')];
+      let firstInvalid = null;
+      const checkedGroups = new Set();
+      fields.forEach((field) => {
+        if (field.type === 'radio') {
+          if (checkedGroups.has(field.name)) return;
+          checkedGroups.add(field.name);
+          const selected = form.querySelector(`input[name="${field.name}"]:checked`);
+          clearError(field.name);
+          if (!selected) {
+            setError(field, 'Wybierz jedną z opcji.');
+            firstInvalid ||= field;
+          }
+          return;
+        }
+        clearError(field.name);
+        if (!field.checkValidity()) {
+          setError(field, errorMessage(field));
+          firstInvalid ||= field;
+        }
+      });
+      if (firstInvalid) {
+        firstInvalid.focus({ preventScroll: true });
+        firstInvalid.scrollIntoView({ behavior: reduceMotion ? 'auto' : 'smooth', block: 'center' });
+        return false;
+      }
+      return true;
+    };
+
+    const renderStep = () => {
+      steps.forEach((step, index) => {
+        step.hidden = index !== currentStep;
+        step.classList.toggle('is-active', index === currentStep);
+      });
+      if (stepLabel) stepLabel.textContent = `Krok ${currentStep + 1} z ${steps.length}`;
+      if (stepTitle) stepTitle.textContent = titles[currentStep];
+      if (progress) progress.style.width = `${((currentStep + 1) / steps.length) * 100}%`;
+      prevButton.hidden = currentStep === 0;
+      nextButton.hidden = currentStep === steps.length - 1;
+      submitButton.hidden = currentStep !== steps.length - 1;
+      steps[currentStep].querySelector('input, select, textarea')?.focus({ preventScroll: true });
+    };
+
+    const moveStep = (direction) => {
+      if (direction > 0 && !validateStep()) return;
+      currentStep = Math.max(0, Math.min(steps.length - 1, currentStep + direction));
+      renderStep();
+      card?.scrollIntoView({ behavior: reduceMotion ? 'auto' : 'smooth', block: 'start' });
+    };
+
+    nextButton?.addEventListener('click', () => moveStep(1));
+    prevButton?.addEventListener('click', () => moveStep(-1));
+    form.addEventListener('input', (event) => {
+      clearError(event.target.name);
+      updateSummary();
+    });
+    form.addEventListener('change', updateSummary);
+
+    const dateInput = form.elements.date;
+    if (dateInput) {
+      const today = new Date();
+      const localDate = new Date(today.getTime() - today.getTimezoneOffset() * 60000).toISOString().split('T')[0];
+      dateInput.min = localDate;
+    }
+
+    form.addEventListener('submit', async (event) => {
+      event.preventDefault();
+      if (!validateStep()) return;
+
+      const data = new FormData(form);
+      const payload = {
+        venue: 'Dom Przyjęć PREMIUM',
+        type: 'catering',
+        submittedAt: new Date().toISOString(),
+        fields: Object.fromEntries(data.entries())
+      };
+      const integrations = window.VENUE_INTEGRATIONS || {};
+      submitButton.disabled = true;
+      submitButton.textContent = 'Wysyłamy…';
+
+      const showResult = (sent) => {
+        form.hidden = true;
+        card?.querySelector('.form-progress')?.setAttribute('hidden', '');
+        result.hidden = false;
+        const subject = encodeURIComponent(`Zapytanie cateringowe — ${data.get('event')}`);
+        const bodyText = [
+          'Dzień dobry,', '', 'proszę o przygotowanie propozycji cateringu:',
+          `Okazja: ${data.get('event')}`, `Data: ${formatDate(data.get('date'))}`,
+          `Liczba osób: ${data.get('guests')}`, `Zakres obsługi: ${data.get('service')}`,
+          `Adres: ${data.get('address')}`, `Uwagi: ${data.get('notes') || 'brak'}`, '',
+          `Kontakt: ${data.get('name')}, ${data.get('phone')}, ${data.get('email')}`
+        ].join('\n');
+        const mailto = `mailto:biuro@premiumradlin.pl?subject=${subject}&body=${encodeURIComponent(bodyText)}`;
+        result.innerHTML = `<div class="result-mark" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M5 12.5l4.2 4.2L19 7"></path></svg></div><h3>${sent ? 'Dziękujemy. Zapytanie jest już u nas.' : 'Zapytanie jest gotowe.'}</h3><p>${sent ? 'Skontaktujemy się, aby ustalić szczegóły i przygotować propozycję.' : 'Wersja podglądowa przygotowała wiadomość. Otwórz ją, sprawdź dane i wyślij do nas.'}</p>${sent ? '' : `<a class="button button-primary" href="${mailto}">Otwórz wiadomość e-mail</a>`}`;
+        result.focus();
+      };
+
+      if (integrations.inquiryEndpoint) {
+        try {
+          const response = await fetch(integrations.inquiryEndpoint, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(payload) });
+          if (!response.ok) throw new Error('request_failed');
+          showResult(true);
+        } catch (_) {
+          showResult(false);
+        }
+      } else {
+        showResult(false);
+      }
+    });
+
+    updateSummary();
+  }
+
+  const year = document.querySelector('[data-year]');
+  if (year) year.textContent = new Date().getFullYear();
+})();
